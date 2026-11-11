@@ -12,18 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b108919bd54c419d9445d1f246dbe76, type: 3}
   m_Name: DialogueLine1
   m_EditorClassIdentifier: Assembly-CSharp::DialogueLineData
-  markedUpText: 'A rich man''s wife became sick, and when she felt that her end was
-    drawing near, she called her only daughter to her bedside and said, "Dear child,
-    remain pious and good, and then our dear God will always protect you, and I will
-    look down on you from heaven and be near you." With this she closed her eyes
-    and died. '
+  markedUpText: 'A <link="id00">rich</link> man''s <link="id01">wife</link> became
+    sick '
   targets:
-  - targetId: 00
+  - targetId: id00
     keyword: rich
     gayaPhrase: RICH
-  - targetId: 01
-    keyword: died
-    gayaPhrase: DIED
-  charInterval: 0.2
-  postDisplayWait: 2
+  - targetId: id01
+    keyword: wife
+    gayaPhrase: WIFE
+  charInterval: 0.1
+  postDisplayWait: 5
   nextLineWait: 0.5

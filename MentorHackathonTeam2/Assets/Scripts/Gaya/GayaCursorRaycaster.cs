@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// 入力デバイス（マウス／タップ／レティクル）の差異を吸収し、
@@ -22,9 +23,12 @@ public class GayaCursorRaycaster : MonoBehaviour
     [Tooltip("Screen Space - Overlay の Canvas なら空でOK")]
     [SerializeField] private Camera _uiCamera;
     [SerializeField] private PointerMode _pointerMode = PointerMode.Mouse;
+    [SerializeField] private Image _reticleImage;
 
     private void Update()
     {
+        UpdateReticle();
+
         if (_gayaSystem == null || _text == null)
         {
             return;
@@ -38,6 +42,43 @@ public class GayaCursorRaycaster : MonoBehaviour
         if (isPressed && !string.IsNullOrEmpty(hoveredId))
         {
             _gayaSystem.TryClaimWord(hoveredId, LocalPlayerId);
+        }
+    }
+
+    private void UpdateReticle()
+    {
+        if (_reticleImage == null)
+        {
+            return;
+        }
+
+        bool showReticle = _pointerMode == PointerMode.Mouse;
+        _reticleImage.enabled = showReticle;
+        if (!showReticle)
+        {
+            return;
+        }
+
+        RectTransform parentRect = _reticleImage.rectTransform.parent as RectTransform;
+        if (parentRect == null)
+        {
+            Debug.LogError("Reticle Image must have a RectTransform parent.", _reticleImage);
+            _reticleImage.enabled = false;
+            return;
+        }
+
+        Canvas canvas = _reticleImage.canvas;
+        Camera eventCamera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay
+            ? (_uiCamera != null ? _uiCamera : canvas.worldCamera)
+            : null;
+
+        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                parentRect,
+                Input.mousePosition,
+                eventCamera,
+                out Vector2 localPoint))
+        {
+            _reticleImage.rectTransform.localPosition = localPoint;
         }
     }
 
