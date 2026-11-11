@@ -31,14 +31,16 @@ public class GayaSystem : MonoBehaviour
     /// <summary>単語の確定に成功した際に発火する（targetId, playerId, gayaPhrase）。</summary>
     public event Action<string, string, string> OnWordClaimed;
 
-    private void OnEnable()
+    private void LateUpdate()
     {
-        TMPro_EventManager.TEXT_CHANGED_EVENT.Add(OnTextChanged);
-    }
-
-    private void OnDisable()
-    {
-        TMPro_EventManager.TEXT_CHANGED_EVENT.Remove(OnTextChanged);
+        // TMP は Canvas 再構築時にメッシュを再生成し頂点カラーをリセットするため、
+        // ここで強制的にメッシュを確定させてから色を上書きし、以降の再生成を防ぐ。
+        if (_text == null || _currentLine == null)
+        {
+            return;
+        }
+        _text.ForceMeshUpdate();
+        ApplyVertexColors();
     }
 
     private void Start()
@@ -197,15 +199,6 @@ public class GayaSystem : MonoBehaviour
             await tcs.Task;
         }
         _text.maxVisibleCharacters = totalChars;
-    }
-
-    private void OnTextChanged(UnityEngine.Object obj)
-    {
-        // TMP がメッシュを再生成すると頂点カラーがリセットされるため再適用する
-        if (obj == _text && !_isApplyingColors)
-        {
-            ApplyVertexColors();
-        }
     }
 
     /// <summary>

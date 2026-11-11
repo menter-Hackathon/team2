@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b108919bd54c419d9445d1f246dbe76, type: 3}
   m_Name: DialogueLine2
   m_EditorClassIdentifier: Assembly-CSharp::DialogueLineData
-  markedUpText: when she <link="id00">felt</link> that her <link="id00">end</link>
+  markedUpText: when she <link="id02">felt</link> that her <link="id03">end</link>
     was drawing near
   targets:
   - targetId: 02
