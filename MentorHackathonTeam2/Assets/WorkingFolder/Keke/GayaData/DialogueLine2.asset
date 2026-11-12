@@ -15,10 +15,10 @@ MonoBehaviour:
   markedUpText: when she <link="id02">felt</link> that her <link="id03">end</link>
     was drawing near
   targets:
-  - targetId: 02
+  - targetId: id02
     keyword: felt
     gayaPhrase: FELT
-  - targetId: 03
+  - targetId: id03
     keyword: end
     gayaPhrase: END
   charInterval: 0.1

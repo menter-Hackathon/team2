@@ -8,40 +8,26 @@ using UnityEngine;
 
 /// <summary>
 /// ガヤゲームのテキストシステム本体。
-/// TMP の文字送り、頂点カラーによる状態表示、UniTask によるセリフ進行、
+/// TMP の文字送り、UniTask によるセリフ進行、
 /// および早押し排他判定（<see cref="TryClaimWord"/>）を担当する。
 /// </summary>
 public class GayaSystem : MonoBehaviour
 {
-    private static readonly Color32 NormalColor = new Color32(0, 0, 0, 255);
-    private static readonly Color32 HoverColor = new Color32(0xFF, 0x3B, 0x30, 255);
-    private static readonly Color32 ClaimedColor = new Color32(0x8E, 0x8E, 0x93, 255);
-
     [SerializeField] private TextMeshProUGUI _text;
     [SerializeField] private List<DialogueLineData> _lines = new List<DialogueLineData>();
     [SerializeField] private bool _loop = true;
     [SerializeField] private bool _playOnStart = true;
+    [SerializeField] private GayaSpeechBubble _gayaSpeechBubblePrefab;
+    [SerializeField] private RectTransform _gayaBubbleParent;
+    [SerializeField] private Color _claimedColor = new Color32(0xFF, 0x3B, 0x30, 0xFF);
 
     private readonly object _claimLock = new object();
     private readonly Dictionary<string, string> _claimedBy = new Dictionary<string, string>();
     private DialogueLineData _currentLine;
     private string _hoveredId;
-    private bool _isApplyingColors;
 
     /// <summary>単語の確定に成功した際に発火する（targetId, playerId, gayaPhrase）。</summary>
     public event Action<string, string, string> OnWordClaimed;
-
-    private void LateUpdate()
-    {
-        // TMP は Canvas 再構築時にメッシュを再生成し頂点カラーをリセットするため、
-        // ここで強制的にメッシュを確定させてから色を上書きし、以降の再生成を防ぐ。
-        if (_text == null || _currentLine == null)
-        {
-            return;
-        }
-        _text.ForceMeshUpdate();
-        ApplyVertexColors();
-    }
 
     private void Start()
     {
@@ -97,7 +83,6 @@ public class GayaSystem : MonoBehaviour
             return;
         }
         _hoveredId = next;
-        ApplyVertexColors();
     }
 
     /// <summary>
@@ -123,11 +108,24 @@ public class GayaSystem : MonoBehaviour
         {
             _hoveredId = null;
         }
-        ApplyVertexColors();
 
         Debug.Log($"[GayaSystem] {playerId} がガヤ！「{phrase}」 (target: {targetId})");
+        SpawnGayaSpeechBubble(phrase);
         OnWordClaimed?.Invoke(targetId, playerId, phrase);
         return true;
+    }
+
+
+    private void SpawnGayaSpeechBubble(string gayaPhrase)
+    {
+        if (_gayaSpeechBubblePrefab == null)
+        {
+            Debug.LogWarning("[GayaSystem] Gaya speech bubble prefab is not assigned.", this);
+            return;
+        }
+
+        GayaSpeechBubble bubble = Instantiate(_gayaSpeechBubblePrefab, _gayaBubbleParent, false);
+        bubble.PlayAnimation(gayaPhrase);
     }
 
     /// <summary>
@@ -153,7 +151,6 @@ public class GayaSystem : MonoBehaviour
         _hoveredId = null;
         _currentLine = line;
 
-        _text.color = Color.white; // 頂点カラーで上書きするためベースは白
         _text.text = line.markedUpText;
         _text.maxVisibleCharacters = 0;
         _text.ForceMeshUpdate();
@@ -199,65 +196,6 @@ public class GayaSystem : MonoBehaviour
             await tcs.Task;
         }
         _text.maxVisibleCharacters = totalChars;
-    }
-
-    /// <summary>
-    /// 表示中の全文字の頂点カラーを、通常／ホバー／回答済みの状態に応じて書き換える。
-    /// </summary>
-    private void ApplyVertexColors()
-    {
-        if (_text == null || _currentLine == null)
-        {
-            return;
-        }
-
-        TMP_TextInfo textInfo = _text.textInfo;
-        if (textInfo == null || textInfo.characterCount == 0)
-        {
-            return;
-        }
-
-        int[] charStates = new int[textInfo.characterCount]; // 0:通常 1:ホバー 2:回答済み
-        for (int i = 0; i < textInfo.linkCount; i++)
-        {
-            TMP_LinkInfo link = textInfo.linkInfo[i];
-            string id = link.GetLinkID();
-            int state = _claimedBy.ContainsKey(id) ? 2 : (id == _hoveredId ? 1 : 0);
-            if (state == 0)
-            {
-                continue;
-            }
-            int end = Mathf.Min(link.linkTextfirstCharacterIndex + link.linkTextLength, charStates.Length);
-            for (int c = link.linkTextfirstCharacterIndex; c < end; c++)
-            {
-                charStates[c] = state;
-            }
-        }
-
-        for (int i = 0; i < textInfo.characterCount; i++)
-        {
-            TMP_CharacterInfo charInfo = textInfo.characterInfo[i];
-            if (!charInfo.isVisible)
-            {
-                continue;
-            }
-
-            Color32 color = charStates[i] == 2 ? ClaimedColor : charStates[i] == 1 ? HoverColor : NormalColor;
-            Color32[] colors = textInfo.meshInfo[charInfo.materialReferenceIndex].colors32;
-            int v = charInfo.vertexIndex;
-            if (colors == null || v + 3 >= colors.Length)
-            {
-                continue;
-            }
-            colors[v] = color;
-            colors[v + 1] = color;
-            colors[v + 2] = color;
-            colors[v + 3] = color;
-        }
-
-        _isApplyingColors = true;
-        _text.UpdateVertexData(TMP_VertexDataUpdateFlags.Colors32);
-        _isApplyingColors = false;
     }
 
     private bool TryGetLinkInfo(string targetId, out TMP_LinkInfo result)

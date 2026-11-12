@@ -45,6 +45,7 @@ public class GayaCursorRaycaster : MonoBehaviour
         }
     }
 
+    /// <summary>レティクルの場所移動。</summary>
     private void UpdateReticle()
     {
         if (_reticleImage == null)
