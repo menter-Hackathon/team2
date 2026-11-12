@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// MC のセリフ1行分のデータ。ガヤ候補は &lt;link="targetId"&gt;単語&lt;/link&gt; でマークアップする。
+/// MC のセリフ1行分のデータ。ガヤ候補は <link="targetId">単語</link> でマークアップする。
 /// </summary>
 [CreateAssetMenu(fileName = "DialogueLine", menuName = "Gaya/Dialogue Line Data")]
 public class DialogueLineData : ScriptableObject
