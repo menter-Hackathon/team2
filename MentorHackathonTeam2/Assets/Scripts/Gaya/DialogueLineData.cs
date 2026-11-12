@@ -7,18 +7,17 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "DialogueLine", menuName = "Gaya/Dialogue Line Data")]
 public class DialogueLineData : ScriptableObject
 {
-    /// <summary>リンクタグでマークアップされたセリフ本文。</summary>
+    [Header("本文")]
+    [Tooltip("セリフ本文。ガヤ候補は <link=\"targetId\">単語</link> でマークアップ")]
     [TextArea] public string markedUpText;
-
-    /// <summary>このセリフに含まれるガヤ候補一覧。</summary>
+    [Tooltip("このセリフに含まれるガヤ候補一覧（targetId を link タグと一致させる）")]
     public List<GayaTargetData> targets = new List<GayaTargetData>();
 
-    /// <summary>1文字あたりの表示間隔（秒）。</summary>
+    [Header("タイミング（秒）")]
+    [Tooltip("1文字あたりの表示間隔（秒）")]
     public float charInterval = 0.2f;
-
-    /// <summary>全文字表示後の維持時間（秒）。</summary>
+    [Tooltip("全文字表示後の維持時間（秒）")]
     public float postDisplayWait = 2.0f;
-
-    /// <summary>消去後、次のセリフまでの待機時間（秒）。</summary>
+    [Tooltip("消去後、次のセリフまでの待機時間（秒）")]
     public float nextLineWait = 0.5f;
 }

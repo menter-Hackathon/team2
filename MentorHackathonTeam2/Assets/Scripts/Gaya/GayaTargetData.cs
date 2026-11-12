@@ -8,12 +8,10 @@ using UnityEngine;
 [Serializable]
 public class GayaTargetData
 {
-    /// <summary>link タグの ID と一致させる識別子。</summary>
+    [Tooltip("link タグの ID と一致させる識別子")]
     public string targetId;
-
-    /// <summary>対象となる単語（確認用）。</summary>
+    [Tooltip("対象となる単語（確認用）")]
     public string keyword;
-
-    /// <summary>クリック成功時に発生するガヤのセリフ。</summary>
+    [Tooltip("クリック成功時に吹き出しへ表示するガヤのセリフ")]
     public string gayaPhrase;
 }
