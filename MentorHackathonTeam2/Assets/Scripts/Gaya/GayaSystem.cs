@@ -36,15 +36,49 @@ public class GayaSystem : MonoBehaviour
     [Header("表示色")]
     [Tooltip("回答済み（ガヤ成功）単語の表示色")]
     [SerializeField] private Color _claimedColor = new Color32(0xFF, 0x3B, 0x30, 0xFF);
+    [Tooltip("おてつき（非ガヤワード）をクリックした単語の表示色")]
+    [SerializeField] private Color _missColor = new Color32(0x00, 0x7A, 0xFF, 0xFF);
+
+    [Header("おてつき")]
+    [Tooltip("非ガヤワードをクリックした際の吹き出しテキストのフォーマット（{0} にクリックした単語が入る）")]
+    [SerializeField] private string _missBubbleFormat = "{0}！？";
+
+    /// <summary>
+    /// 回答済み単語1つ分の記録（回答したプレイヤーと、正解ガヤだったか）。
+    /// </summary>
+    private readonly struct ClaimRecord
+    {
+        public readonly string PlayerId;
+        public readonly bool IsGayaWord;
+
+        /// <summary>
+        /// 回答記録を生成する。
+        /// </summary>
+        public ClaimRecord(string playerId, bool isGayaWord)
+        {
+            PlayerId = playerId;
+            IsGayaWord = isGayaWord;
+        }
+    }
 
     private readonly object _claimLock = new object();
-    private readonly Dictionary<string, string> _claimedBy = new Dictionary<string, string>();
+    private readonly Dictionary<string, ClaimRecord> _claimedBy = new Dictionary<string, ClaimRecord>();
     private DialogueLineData _currentLine;
     private readonly Dictionary<RectTransform, GayaSpeechBubble> _occupiedSpawnPoints = new Dictionary<RectTransform, GayaSpeechBubble>();
     private readonly List<RectTransform> _spawnCandidates = new List<RectTransform>();
 
-    /// <summary>単語の確定に成功した際に発火する（targetId, playerId, gayaPhrase）。</summary>
-    public event Action<string, string, string> OnWordClaimed;
+    /// <summary>
+    /// 単語の確定に成功した際に発火する（targetId, playerId, 吹き出しテキスト, isGayaWord）。
+    /// isGayaWord が true なら正解ガヤ（加点）、false なら非ガヤ（おてつき・減点）。
+    /// </summary>
+    public event Action<string, string, string, bool> OnWordClaimed;
+
+    /// <summary>
+    /// 単語の確定に成功した際に、吹き出しの出現地点付きで発火する
+    /// （targetId, playerId, 吹き出しテキスト, isGayaWord, 出現地点）。
+    /// 吹き出しを生成できなかった場合、出現地点は null になる。
+    /// </summary>
+    public event Action<string, string, string, bool, RectTransform> OnWordClaimedAt;
 
     private void OnEnable()
     {
@@ -100,7 +134,9 @@ public class GayaSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// 単語の確定を試みる。最初に呼んだプレイヤーのみ成功し、対象単語は回答済み色に変わる。
+    /// 単語の確定を試みる。最初に呼んだプレイヤーのみ成功する。
+    /// 現在のセリフの targets に登録された単語なら正解ガヤ（赤・gayaPhrase の吹き出し）、
+    /// 登録されていない単語なら非ガヤ（青・フォーマット適用済みの吹き出し）として扱う。
     /// </summary>
     /// <param name="targetId">対象のリンク ID。</param>
     /// <param name="playerId">確定を試みるプレイヤー ID。</param>
@@ -108,21 +144,40 @@ public class GayaSystem : MonoBehaviour
     public bool TryClaimWord(string targetId, string playerId)
     {
         string phrase;
+        bool isGayaWord;
         lock (_claimLock)
         {
             if (!IsTargetInteractable(targetId))
             {
                 return false;
             }
-            _claimedBy[targetId] = playerId;
-            phrase = FindGayaPhrase(targetId);
+
+            isGayaWord = TryFindGayaTarget(targetId, out GayaTargetData target);
+            if (isGayaWord)
+            {
+                phrase = target.gayaPhrase;
+            }
+            else
+            {
+                string linkText = TryGetLinkInfo(targetId, out TMP_LinkInfo link) ? link.GetLinkText() : string.Empty;
+                phrase = BuildMissPhrase(linkText);
+            }
+            _claimedBy[targetId] = new ClaimRecord(playerId, isGayaWord);
         }
 
         RefreshMeshAndColors();
 
-        Debug.Log($"[GayaSystem] {playerId} がガヤ！「{phrase}」 (target: {targetId})");
-        SpawnGayaSpeechBubble(phrase);
-        OnWordClaimed?.Invoke(targetId, playerId, phrase);
+        if (isGayaWord)
+        {
+            Debug.Log($"[GayaSystem] {playerId} がガヤ！「{phrase}」 (target: {targetId})");
+        }
+        else
+        {
+            Debug.Log($"[GayaSystem] {playerId} がおてつき…「{phrase}」 (target: {targetId})");
+        }
+        RectTransform spawnPoint = SpawnGayaSpeechBubble(phrase);
+        OnWordClaimed?.Invoke(targetId, playerId, phrase, isGayaWord);
+        OnWordClaimedAt?.Invoke(targetId, playerId, phrase, isGayaWord, spawnPoint);
         return true;
     }
 
@@ -144,23 +199,25 @@ public class GayaSystem : MonoBehaviour
     /// ガヤの吹き出しを生成し、セリフを渡してアニメーションを再生する。
     /// </summary>
     /// <param name="gayaPhrase">吹き出しに表示するガヤのセリフ。</param>
-    private void SpawnGayaSpeechBubble(string gayaPhrase)
+    /// <returns>吹き出しを生成した出現地点。生成できなかった場合は null。</returns>
+    private RectTransform SpawnGayaSpeechBubble(string gayaPhrase)
     {
         if (_gayaSpeechBubblePrefab == null)
         {
             Debug.LogWarning("[GayaSystem] Gaya speech bubble prefab is not assigned.", this);
-            return;
+            return null;
         }
 
         if (!TrySelectSpawnPoint(out RectTransform spawnPoint))
         {
             Debug.LogWarning("[GayaSystem] 空いている吹き出しの出現地点がないため、生成をスキップしました。", this);
-            return;
+            return null;
         }
 
         GayaSpeechBubble bubble = Instantiate(_gayaSpeechBubblePrefab, spawnPoint, false);
         _occupiedSpawnPoints[spawnPoint] = bubble;
         bubble.PlayAnimation(gayaPhrase, releasedBubble => ReleaseSpawnPoint(spawnPoint, releasedBubble));
+        return spawnPoint;
     }
 
     /// <summary>
@@ -308,7 +365,8 @@ public class GayaSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// 回答済み（<c>_claimedBy</c> に含まれる）全リンク範囲の頂点カラーを回答済み色に書き換え、メッシュへ反映する。
+    /// 回答済み（<c>_claimedBy</c> に含まれる）全リンク範囲の頂点カラーを、
+    /// 正解ガヤなら <c>_claimedColor</c>、非ガヤなら <c>_missColor</c> に書き換え、メッシュへ反映する。
     /// </summary>
     private void ApplyClaimedColors()
     {
@@ -323,16 +381,18 @@ public class GayaSystem : MonoBehaviour
             return;
         }
 
-        Color32 color = _claimedColor;
+        Color32 gayaColor = _claimedColor;
+        Color32 missColor = _missColor;
         bool isModified = false;
 
         for (int i = 0; i < textInfo.linkCount; i++)
         {
             TMP_LinkInfo link = textInfo.linkInfo[i];
-            if (!_claimedBy.ContainsKey(link.GetLinkID()))
+            if (!_claimedBy.TryGetValue(link.GetLinkID(), out ClaimRecord record))
             {
                 continue;
             }
+            Color32 color = record.IsGayaWord ? gayaColor : missColor;
 
             int start = link.linkTextfirstCharacterIndex;
             int end = Mathf.Min(start + link.linkTextLength, textInfo.characterCount);
@@ -396,10 +456,12 @@ public class GayaSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// 現在のセリフデータから targetId に対応するガヤのセリフを取得する。
+    /// 現在のセリフデータの targets から targetId に対応するガヤ対象を検索する。
     /// </summary>
-    /// <returns>見つからない場合は空文字列。</returns>
-    private string FindGayaPhrase(string targetId)
+    /// <param name="targetId">リンク ID。</param>
+    /// <param name="result">見つかったガヤ対象。</param>
+    /// <returns>正解ガヤワードとして登録されていれば true。</returns>
+    private bool TryFindGayaTarget(string targetId, out GayaTargetData result)
     {
         if (_currentLine?.targets != null)
         {
@@ -407,10 +469,35 @@ public class GayaSystem : MonoBehaviour
             {
                 if (target != null && target.targetId == targetId)
                 {
-                    return target.gayaPhrase;
+                    result = target;
+                    return true;
                 }
             }
         }
-        return string.Empty;
+        result = null;
+        return false;
+    }
+
+    /// <summary>
+    /// おてつき時の吹き出しテキストを、<c>_missBubbleFormat</c> を適用して生成する。
+    /// フォーマットが不正な場合は単語をそのまま返す。
+    /// </summary>
+    /// <param name="linkText">クリックされたリンクの元テキスト。</param>
+    /// <returns>吹き出しに表示するテキスト。</returns>
+    private string BuildMissPhrase(string linkText)
+    {
+        if (string.IsNullOrEmpty(_missBubbleFormat))
+        {
+            return linkText;
+        }
+        try
+        {
+            return string.Format(_missBubbleFormat, linkText);
+        }
+        catch (FormatException)
+        {
+            Debug.LogWarning($"[GayaSystem] おてつき吹き出しのフォーマットが不正です: {_missBubbleFormat}", this);
+            return linkText;
+        }
     }
 }
