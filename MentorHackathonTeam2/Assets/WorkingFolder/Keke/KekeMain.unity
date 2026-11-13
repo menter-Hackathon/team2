@@ -14793,7 +14793,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: c018b7fc3456a427686672d2aa0722fb, type: 2}
   - {fileID: 11400000, guid: d3e69216fc40645ce8b4e1be28118250, type: 2}
   _loop: 0
-  _playOnStart: 1
+  _playOnStart: 0
   _gayaSpeechBubblePrefab: {fileID: 6176351038163400845, guid: 10185d9d48b66493aa57e327960aa257, type: 3}
   _gayaBubbleSpawnPoints:
   - {fileID: 1913593483}
