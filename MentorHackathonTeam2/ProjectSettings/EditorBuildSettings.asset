@@ -4,5 +4,12 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/WorkingFolder/Keke/Day1.unity
+    guid: e332a99e637ea0347ac2071a2829b018
+  - enabled: 1
+    path: Assets/WorkingFolder/Syokora/SceneSelectTest.unity
+    guid: 9cb5869976be28a48bab968b4230adaa
   m_configObjects: {}
+  m_UseUCBPForAssetBundles: 0

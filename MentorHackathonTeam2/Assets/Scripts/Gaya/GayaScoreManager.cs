@@ -36,6 +36,9 @@ public class GayaScoreManager : MonoBehaviour
     /// <summary>現在のスコア。</summary>
     public int Score => _score;
 
+    /// <summary>スコアの最大値。</summary>
+    public int MaxScore => _maxScore;
+
     /// <summary>スコアが変化した際に発火する（新しいスコア, 実際の増減値）。</summary>
     public event Action<int, int> OnScoreChanged;
 
@@ -69,6 +72,21 @@ public class GayaScoreManager : MonoBehaviour
         if (_gauge != null)
         {
             _gauge.Initialize(_score, _maxScore);
+        }
+    }
+
+    /// <summary>
+    /// 表示中のスコアポップアップをすべて破棄する。
+    /// </summary>
+    public void ClearPopups()
+    {
+        if (_popupParent == null)
+        {
+            return;
+        }
+        foreach (ScorePopup popup in _popupParent.GetComponentsInChildren<ScorePopup>(true))
+        {
+            Destroy(popup.gameObject);
         }
     }
 
