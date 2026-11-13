@@ -7,6 +7,7 @@ using UnityEngine;
 public class PopupBase : MonoBehaviour
 {
     private bool _isOpen;
+    protected bool IsOpen => _isOpen;
 
     protected virtual void Start()
     {
@@ -14,7 +15,7 @@ public class PopupBase : MonoBehaviour
         if (!_isOpen) gameObject.SetActive(false);
     }
 
-    public void Open()
+    public virtual void Open()
     {
         if (_isOpen) return;
 
@@ -23,7 +24,7 @@ public class PopupBase : MonoBehaviour
         OnOpened();
     }
 
-    public void Close()
+    public virtual void Close()
     {
         if (!_isOpen) return;
 
