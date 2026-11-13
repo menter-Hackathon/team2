@@ -39,7 +39,7 @@ public class GeminiBenchmarkRunner : MonoBehaviour
         for (int i = 0; i < testCount; i++)
         {
             var sw = Stopwatch.StartNew();
-            await proxyClient.GenerateGayaAsync(targetWord);
+            await proxyClient.GenerateGayaAsync();
             sw.Stop();
             
             proxyTotalTime += sw.ElapsedMilliseconds;
