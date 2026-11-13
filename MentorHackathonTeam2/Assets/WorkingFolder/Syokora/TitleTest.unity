@@ -3969,6 +3969,10 @@ MonoBehaviour:
   _mouseSensitivitySlider: {fileID: 983695353}
   _volumeValueText: {fileID: 409727022}
   _mouseSensitivityValueText: {fileID: 1408983586}
+  _popupPanel: {fileID: 1929485856}
+  _backdrop: {fileID: 1828787886}
+  _openDuration: 0.28
+  _closeDuration: 0.22
 --- !u!114 &1828787886
 MonoBehaviour:
   m_ObjectHideFlags: 0
