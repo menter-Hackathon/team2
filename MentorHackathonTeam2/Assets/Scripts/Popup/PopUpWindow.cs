@@ -1,35 +1,22 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>
-/// ポップアップ自体にアタッチする基底クラス
-/// Startで非表示、開閉関数、開閉時に実行する仮想関数が定義されている
-/// </summary>
-public class PopUpWindow : MonoBehaviour
+/// <summary>ボタンで開閉するポップアップ。ボタン参照は必要なものだけ設定する。</summary>
+public class PopUpWindow : PopupBase
 {
     [SerializeField] private Button openButton;
     [SerializeField] private Button closeButton;
-    
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+
+    protected override void Start()
     {
         if (openButton != null) openButton.onClick.AddListener(Open);
         if (closeButton != null) closeButton.onClick.AddListener(Close);
-        this.gameObject.SetActive(false);
+        base.Start();
     }
 
-    private void Open()
+    protected virtual void OnDestroy()
     {
-        this.gameObject.SetActive(true);
-        OnOpen();
+        if (openButton != null) openButton.onClick.RemoveListener(Open);
+        if (closeButton != null) closeButton.onClick.RemoveListener(Close);
     }
-    
-    private void Close()
-    {
-        this.gameObject.SetActive(true);
-        OnClose();
-    }
-
-    public virtual void OnOpen(){}
-    public virtual void OnClose(){}
 }
