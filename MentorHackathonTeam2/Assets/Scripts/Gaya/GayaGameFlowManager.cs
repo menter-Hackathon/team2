@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -41,10 +40,6 @@ public class GayaGameFlowManager : MonoBehaviour
     [Header("リザルト")]
     [Tooltip("リザルトパネルのルートオブジェクト")]
     [SerializeField] private GameObject _resultPanel;
-    [Tooltip("リザルト画面の最終スコア表示テキスト（任意）")]
-    [SerializeField] private TMP_Text _resultScoreText;
-    [Tooltip("最終スコアの表示フォーマット（{0} にスコアが入る）")]
-    [SerializeField] private string _resultScoreFormat = "SCORE : {0}";
 
     [Header("評価画像")]
     [Tooltip("達成率が Great しきい値以上のときに表示するオブジェクト")]
@@ -202,24 +197,17 @@ public class GayaGameFlowManager : MonoBehaviour
             ? SceneManager.GetActiveScene().name
             : _dayName;
         DataManager.Results.RecordResult(dayName, ratio * 100f);
-        ShowRankObject(Mathf.Clamp01(ratio));
-
-        if (_resultScoreText != null)
-        {
-            _resultScoreText.text = string.IsNullOrEmpty(_resultScoreFormat)
-                ? score.ToString()
-                : string.Format(_resultScoreFormat, score);
-        }
-
         SetActiveSafe(_resultPanel, true);
+        ShowRankObject(Mathf.Clamp01(ratio), score);
         ChangeState(FlowState.Result);
     }
 
     /// <summary>
-    /// 達成率に応じた評価オブジェクトを1つだけ表示し、残りを非表示にする。
+    /// 達成率に応じた評価オブジェクトだけを表示し、結果演出を開始する。
     /// </summary>
     /// <param name="ratio">0〜1 の達成率。</param>
-    private void ShowRankObject(float ratio)
+    /// <param name="finalScore">最終スコア。</param>
+    private void ShowRankObject(float ratio, int finalScore)
     {
         GameObject selected;
         if (ratio >= _greatThreshold)
@@ -243,6 +231,21 @@ public class GayaGameFlowManager : MonoBehaviour
         SetActiveSafe(_goodResultObject, selected == _goodResultObject);
         SetActiveSafe(_midResultObject, selected == _midResultObject);
         SetActiveSafe(_badResultObject, selected == _badResultObject);
+
+        if (selected == null)
+        {
+            Debug.LogError("[GayaGameFlowManager] 達成率に対応する評価オブジェクトが設定されていません。", this);
+            return;
+        }
+
+        ResultRankPresenter presenter = selected.GetComponent<ResultRankPresenter>();
+        if (presenter == null)
+        {
+            Debug.LogError($"[GayaGameFlowManager] {selected.name} に ResultRankPresenter が設定されていません。", selected);
+            return;
+        }
+
+        presenter.PlayResultAsync(finalScore, destroyCancellationToken).Forget();
     }
 
     /// <summary>
