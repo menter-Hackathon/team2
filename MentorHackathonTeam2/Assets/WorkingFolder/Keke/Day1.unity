@@ -965,7 +965,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &57291379
 RectTransform:
   m_ObjectHideFlags: 0
@@ -14517,7 +14517,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aebe755bbf23a44dba36036a84c5ebe1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SceneMover
-  _sceneName: SceneSelectTest
+  _sceneName: TitleSelectTest
 --- !u!114 &841503958
 MonoBehaviour:
   m_ObjectHideFlags: 0

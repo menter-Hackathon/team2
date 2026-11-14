@@ -1,3 +1,4 @@
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -22,6 +23,35 @@ public sealed class SettingsPopUpWindow : PopUpWindow
     [SerializeField] private Slider _mouseSensitivitySlider;
     [SerializeField] private TMP_Text _volumeValueText;
     [SerializeField] private TMP_Text _mouseSensitivityValueText;
+
+    [Header("開閉演出")]
+    [SerializeField] private RectTransform _popupPanel;
+    [SerializeField] private Image _backdrop;
+    [SerializeField, Min(0.01f)] private float _openDuration = 0.28f;
+    [SerializeField, Min(0.01f)] private float _closeDuration = 0.22f;
+
+    private Vector3 _expandedScale = Vector3.one;
+    private float _backdropAlpha;
+    private Tween _scaleTween;
+    private Tween _backdropTween;
+    private bool _closing;
+
+    private void Awake()
+    {
+        if (_popupPanel == null)
+        {
+            Debug.LogError("[SettingsPopUpWindow] Popup Panelを設定してください。", this);
+            return;
+        }
+
+        _expandedScale = _popupPanel.localScale;
+        _popupPanel.localScale = Vector3.zero;
+        if (_backdrop != null)
+        {
+            _backdropAlpha = _backdrop.color.a;
+            SetBackdropAlpha(0f);
+        }
+    }
 
     protected override void Start()
     {
@@ -50,6 +80,7 @@ public sealed class SettingsPopUpWindow : PopUpWindow
 
     protected override void OnDestroy()
     {
+        KillTweens();
         if (_volumeSlider != null) _volumeSlider.onValueChanged.RemoveListener(OnVolumeChanged);
         if (_mouseSensitivitySlider != null) _mouseSensitivitySlider.onValueChanged.RemoveListener(OnMouseSensitivityChanged);
         base.OnDestroy();
@@ -63,6 +94,72 @@ public sealed class SettingsPopUpWindow : PopUpWindow
     protected override void OnClosed()
     {
         PlayerPrefs.Save();
+    }
+
+    public override void Open()
+    {
+        if (_popupPanel == null)
+        {
+            base.Open();
+            return;
+        }
+        if (IsOpen && !_closing) return;
+
+        bool wasOpen = IsOpen;
+        KillTweens();
+        if (!wasOpen)
+        {
+            _popupPanel.localScale = Vector3.zero;
+            if (_backdrop != null) SetBackdropAlpha(0f);
+            base.Open();
+        }
+
+        _closing = false;
+        _scaleTween = _popupPanel.DOScale(_expandedScale, _openDuration)
+            .SetEase(Ease.OutCubic).SetUpdate(true);
+        if (_backdrop != null)
+            _backdropTween = _backdrop.DOFade(_backdropAlpha, _openDuration)
+                .SetEase(Ease.OutCubic).SetUpdate(true);
+    }
+
+    public override void Close()
+    {
+        if (!IsOpen || _closing) return;
+        if (_popupPanel == null)
+        {
+            base.Close();
+            return;
+        }
+
+        _closing = true;
+        KillTweens();
+        _scaleTween = _popupPanel.DOScale(Vector3.zero, _closeDuration)
+            .SetEase(Ease.InCubic).SetUpdate(true).OnComplete(FinishClose);
+        if (_backdrop != null)
+            _backdropTween = _backdrop.DOFade(0f, _closeDuration)
+                .SetEase(Ease.InCubic).SetUpdate(true);
+    }
+
+    private void FinishClose()
+    {
+        _closing = false;
+        _scaleTween = null;
+        base.Close();
+    }
+
+    private void KillTweens()
+    {
+        _scaleTween?.Kill();
+        _backdropTween?.Kill();
+        _scaleTween = null;
+        _backdropTween = null;
+    }
+
+    private void SetBackdropAlpha(float alpha)
+    {
+        Color color = _backdrop.color;
+        color.a = alpha;
+        _backdrop.color = color;
     }
 
     private void OnApplicationPause(bool paused)
