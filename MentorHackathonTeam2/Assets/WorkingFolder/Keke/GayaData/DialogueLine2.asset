@@ -22,5 +22,5 @@ MonoBehaviour:
     keyword: "\u59CB\u3081\u3066\u3044\u304D\u307E\u3057\u3087\u3046"
     gayaPhrase: "\u59CB\u3081\u307E\u3057\u3087\u3046"
   charInterval: 0.1
-  postDisplayWait: 5
+  postDisplayWait: 3
   nextLineWait: 0.5
