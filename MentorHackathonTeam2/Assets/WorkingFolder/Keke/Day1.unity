@@ -965,7 +965,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &57291379
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6114,7 +6114,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &369520820
 RectTransform:
   m_ObjectHideFlags: 0
@@ -16620,8 +16620,8 @@ MonoBehaviour:
   - {fileID: 416932257}
   - {fileID: 1505562119}
   _allowOverlapWhenFull: 0
-  _claimedColor: {r: 1, g: 0.23137255, b: 0.1882353, a: 1}
-  _missColor: {r: 0, g: 0.47843137, b: 1, a: 1}
+  _claimedColor: {r: 1, g: 0, b: 0, a: 1}
+  _missColor: {r: 0.6, g: 0.6, b: 0.6, a: 1}
   _missBubbleFormat: "{0}\uFF01\uFF1F"
 --- !u!114 &995631197
 MonoBehaviour:
@@ -16690,7 +16690,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GayaGameFlowManager
   _gayaSystem: {fileID: 995631196}
   _gayaScoreManager: {fileID: 995631199}
-  _dayName: 
+  _dayName: Day1
   _howToPlayPanel: {fileID: 57291378}
   _startButton: {fileID: 1175534687}
   _gameplayUiElements:

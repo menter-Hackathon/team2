@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b108919bd54c419d9445d1f246dbe76, type: 3}
+  m_Name: CodeLine1
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueLineData
+  markedUpText: '<link="1"><color=#9CDCFE>private void</color> <color=#DCD0FF>Ontriggerenter</color>(<color=#4EC9B0>Collider</color>
+    <color=#9CDCFE>other</color>)</link>
+
+    <link="2">{</link>
+
+    <link="3">   
+    <color=#C586C0>if</color> (<color=#9CDCFE>other</color>.<color=#DCDCAA>CompareTag</color>(<color=#CE9178>"Player"</color>))</link>
+
+    <link="4">   
+    {</link>
+
+    <link="5">        <color=#4EC9B0>Debug</color>.<color=#DCDCAA>Log</color>(<color=#CE9178>"Player
+    entered!"</color>);</link>
+
+    <link="6">        <color=#4EC9B0>Rigidbody</color>
+    <color=#9CDCFE>rb</color> = <color=#9CDCFE>other</color>.<color=#DCDCAA>GetComponent</color><<color=#4EC9B0>Rigidbody</color>>();</link>
+
+    <link="7">       
+    <color=#C586C0>if</color> (<color=#9CDCFE>rb</color> != <color=#569CD6>null</color>)</link>
+
+    <link="8">       
+    {</link>
+
+    <link="9">            <color=#9CDCFE>rb</color>.<color=#DCDCAA>AddForce</color>(<color=#4EC9B0>Vector3</color>.<color=#9CDCFE>up</color>
+    * <color=#B5CEA8>5f</color>, <color=#4EC9B0>ForceMode</color>.<color=#9CDCFE>Impulse</color>);</link>
+
+    <link="10">       
+    }</link>
+
+    <link="11">    }</link>
+
+    <link="12">}</link>'
+  targets:
+  - targetId: 1
+    keyword: Ontriggerenter
+    gayaPhrase: "\u5927\u6587\u5B57\u3058\u3083\u306A\u3044\uFF01"
+  charInterval: 0
+  postDisplayWait: 5
+  nextLineWait: 0.5
