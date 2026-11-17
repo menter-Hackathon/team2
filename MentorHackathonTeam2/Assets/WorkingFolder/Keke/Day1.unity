@@ -542,7 +542,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: -200}
-  m_SizeDelta: {x: 400, y: 20}
+  m_SizeDelta: {x: 390, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &37404245
 MonoBehaviour:
@@ -16608,11 +16608,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GayaSystem
   _text: {fileID: 743039338}
+  _slideSceneName: Day2
+  _gameplayUiRoot: {fileID: 0}
+  _slideOffsetX: 900
+  _slideDuration: 0.5
+  _slideEase: 9
   _lines:
   - {fileID: 11400000, guid: c018b7fc3456a427686672d2aa0722fb, type: 2}
   - {fileID: 11400000, guid: d3e69216fc40645ce8b4e1be28118250, type: 2}
   _loop: 0
   _playOnStart: 1
+  _skipButton: {fileID: 0}
   _gayaSpeechBubblePrefab: {fileID: 6176351038163400845, guid: 10185d9d48b66493aa57e327960aa257, type: 3}
   _gayaBubbleSpawnPoints:
   - {fileID: 1913593483}
@@ -16830,7 +16836,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: -200}
-  m_SizeDelta: {x: 400, y: 20}
+  m_SizeDelta: {x: 390, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1010166331
 MonoBehaviour:
@@ -18801,7 +18807,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 5}
   m_SizeDelta: {x: 20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1112976531
@@ -18824,7 +18830,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  m_Sprite: {fileID: 21300000, guid: 24edcfa458bbe43ecb6564d2b9f4e355, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -20092,8 +20098,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 8edf1c562a630460bbe821f584f4a0d8, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -20435,8 +20441,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 8edf1c562a630460bbe821f584f4a0d8, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -28887,8 +28893,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 8edf1c562a630460bbe821f584f4a0d8, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
