@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b108919bd54c419d9445d1f246dbe76, type: 3}
+  m_Name: CodeLine3
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueLineData
+  markedUpText: "<link=\"1\"><color=#9CDCFE>void</color> <color=#DCD0FF>Update</color>()</link>\n<link=\"2\">{</link>\n<link=\"3\">   
+    <color=#C586C0>if</color> (<color=#4EC9B0>Input</color>.<color=#DCDCAA>GetKeyDown</color>(<color=#4EC9B0>KeyCode</color>.<color=#9CDCFE>UpArrow</color>))</link>\n<link=\"4\">   
+    {</link>\n<link=\"5\">        <color=#9CDCFE>playerRigidbody</color>.<color=#9CDCFE>velocity</color>
+    = <color=#C586C0>new</color> <color=#4EC9B0>Vector\uFF13</color>(<color=#B5CEA8>0</color>,
+    <color=#B5CEA8>0</color>, <color=#B5CEA8>0</color>);</link>\n<link=\"6\">       
+    <color=#9CDCFE>playerRigidbody</color>.<color=#DCDCAA>AddForce</color>(<color=#C586C0>new</color>
+    <color=#4EC9B0>Vector3</color>(<color=#B5CEA8>0</color>, <color=#B5CEA8>6</color>,
+    <color=#B5CEA8>0</color>), <color=#4EC9B0>ForceMode</color>.<color=#9CDCFE>Impulse</color>);</link>\n<link=\"7\">       
+    <color=#9CDCFE>animator</color>.<color=#DCDCAA>SetTrigger</color>(<color=#CE9178>\"Jump\"</color>)</link>\n<link=\"8\">   
+    }</link>\n<link=\"9\">}</link>"
+  targets:
+  - targetId: 5
+    keyword: "\uFF13"
+    gayaPhrase: "3\u304C\u5168\u89D2"
+  - targetId: 7
+    keyword: ;
+    gayaPhrase: ";\u304C\u306A\u3044"
+  charInterval: 0
+  postDisplayWait: 10
+  nextLineWait: 0.5

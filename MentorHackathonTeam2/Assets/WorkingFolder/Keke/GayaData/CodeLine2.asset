@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b108919bd54c419d9445d1f246dbe76, type: 3}
+  m_Name: CodeLine2
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueLineData
+  markedUpText: '<link="1"><color=#9CDCFE>void</color> <color=#DCD0FF>Update</color>()</link>
+
+    <link="2">{</link>
+
+    <link="3">   
+    <color=#9CDCFE>transform</color>.<color=#9CDCFE>position</color> += <color=#C586C0>new</color>
+    <color=#4EC9B0>Vector3</color>(<color=#B5CEA8>0</color>, <color=#B5CEA8>0</color>,
+    <color=#9CDCFE>speed</color>) * <color=#4EC9B0>Time</color>.<color=#9CDCFE>deltaTime</color>;</link>
+
+    <link="4">   
+    <color=#4EC9B0>float</color> <color=#9CDCFE>posX</color> = <color=#9CDCFE>transform</color>.<color=#9CDCFE>position</color>.<color=#9CDCFE>x</color>;</link>
+
+    <link="5"></link>
+
+    <link="6">   
+    <color=#C586C0>if</color> (<color=#4EC9B0>Input</color>.<color=#DCDCAA>getKey</color>(<color=#4EC9B0>KeyCode</color>.<color=#9CDCFE>RightArrow</color>))</link>
+
+    <link="7">   
+    {</link>
+
+    <link="8">        <color=#C586C0>if</color> (<color=#9CDCFE>posX</color>
+    < <color=#B5CEA8>1.8f</color>)</link>
+
+    <link="9">        {</link>
+
+    <link="10">           
+    <color=#9CDCFE>transform</color>.<color=#9CDCFE>position</color> += <color=#C586C0>new</color>
+    <color=#4EC9B0>Vector3</color>(<color=#9CDCFE>slideSpeed</color>, <color=#B5CEA8>0</color>,
+    <color=#B5CEA8>0</color>) * <color=#4EC9B0>Time</color>.<color=#9CDCFE>doltaTime</color>;</link>
+
+    <link="11">       
+    }</link>
+
+    <link="12">    }</link>
+
+    <link="13">}</link>'
+  targets:
+  - targetId: 6
+    keyword: getKey
+    gayaPhrase: "G\u304C\u5C0F\u6587\u5B57"
+  - targetId: 10
+    keyword: doltaTime
+    gayaPhrase: "dolta\u306B\u306A\u3063\u3066\u3044\u308B"
+  charInterval: 0
+  postDisplayWait: 10
+  nextLineWait: 0.5
