@@ -29,6 +29,7 @@ MonoBehaviour:
   - targetId: 7
     keyword: ;
     gayaPhrase: ";\u304C\u306A\u3044"
+  isSkippable: 1
   charInterval: 0
-  postDisplayWait: 10
+  postDisplayWait: 30
   nextLineWait: 0.5
