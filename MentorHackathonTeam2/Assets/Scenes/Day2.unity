@@ -13343,6 +13343,7 @@ RectTransform:
   - {fileID: 1899159354}
   - {fileID: 57291379}
   - {fileID: 369520820}
+  - {fileID: 1940361912}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -16643,6 +16644,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GayaSystem
   _text: {fileID: 743039338}
+  _slideSceneName: Day2
+  _gameplayUiRoot: {fileID: 1899159354}
+  _slideOffsetX: 900
+  _slideDuration: 2
+  _slideEase: 4
   _lines:
   - {fileID: 11400000, guid: 99ccf260ce8e84315b77443ba93b958c, type: 2}
   - {fileID: 11400000, guid: ff0f3cfbbfc7049baa54b0245b072f47, type: 2}
@@ -17026,7 +17032,7 @@ RectTransform:
   m_Children:
   - {fileID: 37404244}
   - {fileID: 1010166330}
-  m_Father: {fileID: 1899159354}
+  m_Father: {fileID: 1940361912}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -20370,7 +20376,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1899159354}
+  m_Father: {fileID: 1940361912}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -30216,12 +30222,10 @@ RectTransform:
   m_Children:
   - {fileID: 1059906793}
   - {fileID: 743039337}
-  - {fileID: 1225390076}
   - {fileID: 1913593483}
   - {fileID: 1285491830}
   - {fileID: 416932257}
   - {fileID: 1505562119}
-  - {fileID: 1035723485}
   - {fileID: 2098837353}
   m_Father: {fileID: 773333921}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -30518,6 +30522,43 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4629217466970814, guid: 7d255bce5b634604dbc1ed9f1e878f20, type: 3}
   m_PrefabInstance: {fileID: 1922276531}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1940361911
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1940361912}
+  m_Layer: 0
+  m_Name: PlayerUI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1940361912
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1940361911}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1225390076}
+  - {fileID: 1035723485}
+  m_Father: {fileID: 773333921}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1943184449
 GameObject:
   m_ObjectHideFlags: 0
@@ -34122,7 +34163,6 @@ GameObject:
   - component: {fileID: 2098837358}
   - component: {fileID: 2098837357}
   - component: {fileID: 2098837355}
-  - component: {fileID: 2098837354}
   m_Layer: 5
   m_Name: SkipButton
   m_TagString: Untagged
@@ -34149,21 +34189,6 @@ RectTransform:
   m_AnchoredPosition: {x: 359, y: 0}
   m_SizeDelta: {x: 50, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &2098837354
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2098837352}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 314e719a739a042b08249b3ef4b4e2cf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Scaler
-  _targetScale: {x: 1.2, y: 1.2, z: 1}
-  _duration: 0.5
-  _ease: 4
 --- !u!114 &2098837355
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -34243,7 +34268,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: bbf605f3fa8834a10be7bde98fbb5113, type: 3}
+  m_Sprite: {fileID: 21300000, guid: b517b0aaa137c41149a97aa8cf4b784e, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
