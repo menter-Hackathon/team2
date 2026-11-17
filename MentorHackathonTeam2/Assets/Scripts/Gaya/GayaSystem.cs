@@ -530,4 +530,13 @@ public class GayaSystem : MonoBehaviour
             return linkText;
         }
     }
+
+    /// <summary>
+    /// 使用するガヤ文章を外部から書き換える関数
+    /// </summary>
+    /// <param name="newLines"></param>
+    public void SetGayaLines(List<DialogueLineData> newLines)
+    {
+        _lines = newLines;
+    }
 }
