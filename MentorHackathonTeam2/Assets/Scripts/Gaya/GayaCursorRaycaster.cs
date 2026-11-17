@@ -36,7 +36,13 @@ public class GayaCursorRaycaster : MonoBehaviour
     {
         UpdateReticle();
 
-        if (_gayaSystem == null || _text == null)
+        if (_gayaSystem == null)
+        {
+            return;
+        }
+
+        _text = _gayaSystem.CurrentText;
+        if (_gayaSystem.IsTransitioning || _text == null)
         {
             return;
         }

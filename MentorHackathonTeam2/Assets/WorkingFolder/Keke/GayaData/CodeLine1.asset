@@ -49,5 +49,5 @@ MonoBehaviour:
     gayaPhrase: "\u30B9\u30AF\u30EA\u30D7\u30C8\u540D\u304C\u304A\u304B\u3057\u3044"
   isSkippable: 1
   charInterval: 0
-  postDisplayWait: 30
+  postDisplayWait: 5
   nextLineWait: 0.5
