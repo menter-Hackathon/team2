@@ -7234,7 +7234,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 200, y: 0}
+  m_AnchoredPosition: {x: 150, y: -100}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &428431775
@@ -12089,9 +12089,42 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "private float update;\n\n    void Awake()\n    {\n        Debug.Log(\"Awake\");\n       
-    update = 0.0f;\n    }\n\n    IEnumerator Start()\n    {\n        Debug.Log(\"Start1\");\n       
-    yield return new WaitForSeconds(2.5f);\n        Debug.Log(\"Start2\");\n    }"
+  m_text: '<link="1"><color=#9CDCFE>void</color> <color=#DCD0FF>Update</color>()</link>
+
+    <link="2">{</link>
+
+    <link="3">   
+    <color=#9CDCFE>transform</color>.<color=#9CDCFE>position</color> += <color=#C586C0>new</color>
+    <color=#4EC9B0>Vector3</color>(<color=#B5CEA8>0</color>, <color=#B5CEA8>0</color>,
+    <color=#9CDCFE>speed</color>) * <color=#4EC9B0>Time</color>.<color=#9CDCFE>deltaTime</color>;</link>
+
+    <link="4">   
+    <color=#4EC9B0>float</color> <color=#9CDCFE>posX</color> = <color=#9CDCFE>transform</color>.<color=#9CDCFE>position</color>.<color=#9CDCFE>x</color>;</link>
+
+    <link="5"></link>
+
+    <link="6">   
+    <color=#C586C0>if</color> (<color=#4EC9B0>Input</color>.<color=#DCDCAA>getKey</color>(<color=#4EC9B0>KeyCode</color>.<color=#9CDCFE>RightArrow</color>))</link>
+
+    <link="7">   
+    {</link>
+
+    <link="8">        <color=#C586C0>if</color> (<color=#9CDCFE>posX</color>
+    < <color=#B5CEA8>1.8f</color>)</link>
+
+    <link="9">        {</link>
+
+    <link="10">           
+    <color=#9CDCFE>transform</color>.<color=#9CDCFE>position</color> += <color=#C586C0>new</color>
+    <color=#4EC9B0>Vector3</color>(<color=#9CDCFE>slideSpeed</color>, <color=#B5CEA8>0</color>,
+    <color=#B5CEA8>0</color>) * <color=#4EC9B0>Time</color>.<color=#9CDCFE>doltaTime</color>;</link>
+
+    <link="11">       
+    }</link>
+
+    <link="12">    }</link>
+
+    <link="13">}</link>'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: d6d217ee9decf7e418819471eb34fc89, type: 2}
   m_sharedMaterial: {fileID: 2445629588642555089, guid: d6d217ee9decf7e418819471eb34fc89, type: 2}
@@ -12118,8 +12151,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 15
-  m_fontSizeBase: 15
+  m_fontSize: 12
+  m_fontSizeBase: 12
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -12128,7 +12161,7 @@ MonoBehaviour:
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
   m_textAlignment: 65535
-  m_characterSpacing: -3.5
+  m_characterSpacing: -4
   m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
@@ -12157,7 +12190,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: -342.57678, y: 0, z: -160.47813, w: 0}
+  m_margin: {x: -342.57678, y: 0, z: 12.288887, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -16611,7 +16644,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GayaSystem
   _text: {fileID: 743039338}
   _lines:
-  - {fileID: 11400000, guid: 0132e0f7bc23c4da08e86f1161b071d7, type: 2}
+  - {fileID: 11400000, guid: 99ccf260ce8e84315b77443ba93b958c, type: 2}
+  - {fileID: 11400000, guid: ff0f3cfbbfc7049baa54b0245b072f47, type: 2}
+  - {fileID: 11400000, guid: 2dddeec0b202e47f2aac578ce028ff1b, type: 2}
   _loop: 0
   _playOnStart: 1
   _gayaSpeechBubblePrefab: {fileID: 6176351038163400845, guid: 10185d9d48b66493aa57e327960aa257, type: 3}
@@ -16623,7 +16658,7 @@ MonoBehaviour:
   _allowOverlapWhenFull: 0
   _claimedColor: {r: 1, g: 0, b: 0, a: 1}
   _missColor: {r: 1, g: 1, b: 1, a: 0.49019608}
-  _missBubbleFormat: "\u304A\u304B\u3057\u304F\u306A\u3044\u3088"
+  _missBubbleFormat: "\u3042\u3063\u3066\u308B\u3088"
 --- !u!114 &995631197
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21002,7 +21037,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -200, y: 0}
+  m_AnchoredPosition: {x: -150, y: -100}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1286357067
@@ -25081,7 +25116,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 250, y: -120}
+  m_AnchoredPosition: {x: 300, y: -75}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1508218824
@@ -30362,7 +30397,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -250, y: -120}
+  m_AnchoredPosition: {x: -300, y: -75}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1917124082
