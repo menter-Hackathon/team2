@@ -7,12 +7,14 @@
  {
     private void Start() 
     {
+        Debug.Log("Start実行");
         PhotonNetwork.NickName = "Player";
         PhotonNetwork.ConnectUsingSettings();
     }
 
     public override void OnConnectedToMaster() 
     {
+        Debug.Log("マスターサーバーに接続成功");
         // ランダムなルームに参加する
         PhotonNetwork.JoinRandomRoom();
     }
@@ -29,6 +31,9 @@
 
     public override void OnJoinedRoom() 
     {
+        Debug.Log("ルームに参加しました");
+        Debug.Log("ルーム名：" + PhotonNetwork.CurrentRoom.Name);
+
         var position = new Vector3(Random.Range(-3f, 3f), Random.Range(-3f, 3f));
         PhotonNetwork.Instantiate("Avatar", position, Quaternion.identity);
 

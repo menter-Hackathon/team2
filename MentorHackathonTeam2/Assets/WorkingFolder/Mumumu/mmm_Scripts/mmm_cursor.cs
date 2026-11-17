@@ -1,13 +1,19 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Photon.Pun;
 
 /// <summary>
 /// 入力デバイス（マウス／タップ／レティクル）の差異を吸収し、
 /// クリックされたガヤ候補を <see cref="GayaSystem"/> に通知する入力専用クラス。
 /// </summary>
-public class mmm_cursor : MonoBehaviour
+public class mmm_cursor : MonoBehaviourPun, IPunObservable
 {
+
+    // 相手から受信したレティクルの位置（画面内の割合）
+    private Vector2 _remotePointerPosition = new Vector2(0.5f, 0.5f); 
+    private bool _receivedPointer;
+
     /// <summary>ポインター位置の取得方法。</summary>
     public enum PointerMode
     {
@@ -34,24 +40,34 @@ public class mmm_cursor : MonoBehaviour
 
     private void Update()
     {
-        UpdateReticle();
-
-        if (_gayaSystem == null || _text == null)
+        if(photonView.IsMine)
         {
-            return;
+            UpdateReticle(Input.mousePosition);
+
+            if (_gayaSystem == null || _text == null)
+            {
+                return;
+            }
+
+            bool hasPointer = TryGetPointer(out Vector3 pointerPosition, out bool isPressed);
+            string hoveredId = hasPointer ? FindLinkId(pointerPosition) : null;
+
+            if (isPressed && !string.IsNullOrEmpty(hoveredId))
+            {
+                _gayaSystem.TryClaimWord(hoveredId, LocalPlayerId);
+            }
         }
-
-        bool hasPointer = TryGetPointer(out Vector3 pointerPosition, out bool isPressed);
-        string hoveredId = hasPointer ? FindLinkId(pointerPosition) : null;
-
-        if (isPressed && !string.IsNullOrEmpty(hoveredId))
+        else
         {
-            _gayaSystem.TryClaimWord(hoveredId, LocalPlayerId);
+            // 相手のレティクルは受信した位置に表示
+            Vector2 screenPosition = new Vector2(_remotePointerPosition.x * Screen.width, _remotePointerPosition.y * Screen.height);
+
+            UpdateReticle(screenPosition);
         }
     }
 
     /// <summary>レティクル画像をマウス位置へ移動させる（Mouse モード時のみ表示）。</summary>
-    private void UpdateReticle()
+    private void UpdateReticle(Vector2 screenPosition)
     {
         if (_reticleImage == null)
         {
@@ -80,12 +96,31 @@ public class mmm_cursor : MonoBehaviour
 
         if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
                 parentRect,
-                Input.mousePosition,
+                screenPosition,
                 eventCamera,
                 out Vector2 localPoint))
         {
             _reticleImage.rectTransform.localPosition = localPoint;
         }
+    }
+
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if (stream.IsWriting)
+        {
+            // 自分のマウス位置を画面内の割合に変換
+            Vector2 normalizedPosition = new Vector2(Input.mousePosition.x / Screen.width, Input.mousePosition.y / Screen.height);
+
+            stream.SendNext(normalizedPosition);
+        }
+
+        else
+        {
+            // 相手のマウス位置を受信
+            _remotePointerPosition = (Vector2)stream.ReceiveNext();
+            _receivedPointer = true;
+        }
+
     }
 
     /// <summary>
