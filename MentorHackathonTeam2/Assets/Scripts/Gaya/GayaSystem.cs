@@ -80,6 +80,36 @@ public class GayaSystem : MonoBehaviour
     /// </summary>
     public event Action<string, string, string, bool, RectTransform> OnWordClaimedAt;
 
+    /// <summary>Start 時に自動でシーケンスを開始するか（Start より前に設定すること）。</summary>
+    public bool PlayOnStart
+    {
+        get => _playOnStart;
+        set => _playOnStart = value;
+    }
+
+    /// <summary>全セリフ再生後に先頭へ戻ってループするか。</summary>
+    public bool Loop
+    {
+        get => _loop;
+        set => _loop = value;
+    }
+
+    /// <summary>
+    /// 表示中のガヤ吹き出しをすべて破棄し、出現地点の占有状態をリセットする。
+    /// </summary>
+    public void ClearSpeechBubbles()
+    {
+        var bubbles = new List<GayaSpeechBubble>(_occupiedSpawnPoints.Values);
+        _occupiedSpawnPoints.Clear();
+        foreach (GayaSpeechBubble bubble in bubbles)
+        {
+            if (bubble != null)
+            {
+                Destroy(bubble.gameObject);
+            }
+        }
+    }
+
     private void OnEnable()
     {
         // レイアウト変更などで TMP がメッシュを再生成した場合にも色を維持するための保険
