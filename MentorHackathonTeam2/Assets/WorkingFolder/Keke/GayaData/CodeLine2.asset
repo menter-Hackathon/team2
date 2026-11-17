@@ -55,6 +55,7 @@ MonoBehaviour:
   - targetId: 10
     keyword: doltaTime
     gayaPhrase: "dolta\u306B\u306A\u3063\u3066\u3044\u308B"
+  isSkippable: 1
   charInterval: 0
-  postDisplayWait: 10
+  postDisplayWait: 30
   nextLineWait: 0.5

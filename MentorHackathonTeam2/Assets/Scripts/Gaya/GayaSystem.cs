@@ -5,6 +5,7 @@ using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// ガヤゲームのテキストシステム本体。
@@ -24,6 +25,10 @@ public class GayaSystem : MonoBehaviour
     [SerializeField] private bool _loop = true;
     [Tooltip("Start 時に自動でシーケンスを開始するか")]
     [SerializeField] private bool _playOnStart = true;
+
+    [Header("スキップ")]
+    [Tooltip("スキップ可能なセリフの再生中だけ表示するボタン（任意）")]
+    [SerializeField] private Button _skipButton;
 
     [Header("ガヤ吹き出し")]
     [Tooltip("ガヤ成功時に生成する吹き出しのプレハブ（GayaSpeechBubble 付き）")]
@@ -64,6 +69,8 @@ public class GayaSystem : MonoBehaviour
     private readonly object _claimLock = new object();
     private readonly Dictionary<string, ClaimRecord> _claimedBy = new Dictionary<string, ClaimRecord>();
     private DialogueLineData _currentLine;
+    private CancellationTokenSource _skipLineCancellation;
+    private bool _skipRequested;
     private readonly Dictionary<RectTransform, GayaSpeechBubble> _occupiedSpawnPoints = new Dictionary<RectTransform, GayaSpeechBubble>();
     private readonly List<RectTransform> _spawnCandidates = new List<RectTransform>();
 
@@ -114,11 +121,41 @@ public class GayaSystem : MonoBehaviour
     {
         // レイアウト変更などで TMP がメッシュを再生成した場合にも色を維持するための保険
         TMPro_EventManager.TEXT_CHANGED_EVENT.Add(OnTextChanged);
+        if (_skipButton != null)
+        {
+            _skipButton.onClick.AddListener(OnSkipButtonClicked);
+            SetSkipButtonVisible(_currentLine != null && _currentLine.isSkippable && !_skipRequested);
+        }
     }
 
     private void OnDisable()
     {
         TMPro_EventManager.TEXT_CHANGED_EVENT.Remove(OnTextChanged);
+        if (_skipButton != null)
+        {
+            _skipButton.onClick.RemoveListener(OnSkipButtonClicked);
+            SetSkipButtonVisible(false);
+        }
+    }
+
+    private void OnSkipButtonClicked()
+    {
+        if (_currentLine == null || !_currentLine.isSkippable || _skipLineCancellation == null || _skipRequested)
+        {
+            return;
+        }
+
+        _skipRequested = true;
+        SetSkipButtonVisible(false);
+        _skipLineCancellation.Cancel();
+    }
+
+    private void SetSkipButtonVisible(bool visible)
+    {
+        if (_skipButton != null && _skipButton.gameObject.activeSelf != visible)
+        {
+            _skipButton.gameObject.SetActive(visible);
+        }
     }
 
     private void Start()
@@ -309,26 +346,51 @@ public class GayaSystem : MonoBehaviour
     /// </summary>
     private async UniTask PlayLineAsync(DialogueLineData line, CancellationToken ct)
     {
-        lock (_claimLock)
+        using (var skipLineCancellation = CancellationTokenSource.CreateLinkedTokenSource(ct))
         {
-            _claimedBy.Clear();
+            _skipLineCancellation = skipLineCancellation;
+            _skipRequested = false;
+            lock (_claimLock)
+            {
+                _claimedBy.Clear();
+            }
+            _currentLine = line;
+
+            _text.text = line.markedUpText;
+            _text.maxVisibleCharacters = 0;
+            _text.ForceMeshUpdate();
+            SetSkipButtonVisible(line.isSkippable);
+
+            try
+            {
+                int totalChars = _text.textInfo.characterCount;
+                await TypeCharactersAsync(totalChars, line.charInterval, skipLineCancellation.Token);
+
+                await UniTask.Delay(TimeSpan.FromSeconds(line.postDisplayWait), cancellationToken: skipLineCancellation.Token);
+
+                SetSkipButtonVisible(false);
+                _text.maxVisibleCharacters = 0;
+                _text.text = string.Empty;
+                _currentLine = null;
+
+                await UniTask.Delay(TimeSpan.FromSeconds(line.nextLineWait), cancellationToken: skipLineCancellation.Token);
+            }
+            catch (OperationCanceledException) when (_skipRequested && !ct.IsCancellationRequested)
+            {
+                // この行だけを中断し、次の行（最終行ならシーケンス終了）へ進む。
+            }
+            finally
+            {
+                SetSkipButtonVisible(false);
+                if (_text != null)
+                {
+                    _text.maxVisibleCharacters = 0;
+                    _text.text = string.Empty;
+                }
+                _currentLine = null;
+                _skipLineCancellation = null;
+            }
         }
-        _currentLine = line;
-
-        _text.text = line.markedUpText;
-        _text.maxVisibleCharacters = 0;
-        _text.ForceMeshUpdate();
-
-        int totalChars = _text.textInfo.characterCount;
-        await TypeCharactersAsync(totalChars, line.charInterval, ct);
-
-        await UniTask.Delay(TimeSpan.FromSeconds(line.postDisplayWait), cancellationToken: ct);
-
-        _text.maxVisibleCharacters = 0;
-        _text.text = string.Empty;
-        _currentLine = null;
-
-        await UniTask.Delay(TimeSpan.FromSeconds(line.nextLineWait), cancellationToken: ct);
     }
 
     /// <summary>
