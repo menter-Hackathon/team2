@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b108919bd54c419d9445d1f246dbe76, type: 3}
+  m_Name: DialogueLine6
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueLineData
+  markedUpText: "<link=\"11\">\u6c34\u5206\u88dc\u7d66\u3001</link><link=\"12\">\u8ff7\u5b50\u30bc\u30ed\u3067\u3001</link><link=\"13\">\u7b11\u9854\u3067\u697d\u3057\u3082\u3046\uff01</link>"
+  targets:
+  - targetId: 11
+    keyword: "\u6c34\u5206\u88dc\u7d66\u3001"
+    gayaPhrase: "\u30b4\u30af\u30b4\u30af\uff01"
+  - targetId: 12
+    keyword: "\u8ff7\u5b50\u30bc\u30ed\u3067\u3001"
+    gayaPhrase: "\u306f\u30fc\u3044\uff01"
+  - targetId: 13
+    keyword: "\u7b11\u9854\u3067\u697d\u3057\u3082\u3046\uff01"
+    gayaPhrase: "\u305f\u306e\u3057\u3080\uff01\uff01"
+  charInterval: 0.1
+  postDisplayWait: 3
+  nextLineWait: 0.5

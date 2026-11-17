@@ -4,6 +4,7 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 using Cysharp.Threading.Tasks;
+using UnityEngine.UI;
 
 [Serializable]
 public class WordData
@@ -69,24 +70,118 @@ public class PartData
 
 public class CloudflareGeminiClient : MonoBehaviour
 {
+    [SerializeField] private GayaSystem lineTarget;
+    [SerializeField] private Button startButton;
+    [SerializeField] private GayaScoreManager scoreManager;
+    
     [SerializeField] 
     private string proxyUrl = "https://gaya-gen.hsmtyuusei.workers.dev/";
 
+    private void Awake()
+    {
+        if (startButton == null || lineTarget == null || scoreManager == null)
+        {
+            Debug.LogError("[CloudflareGeminiClient] Start Button、GayaSystem、GayaScoreManager の参照を設定してください。", this);
+            return;
+        }
+
+        startButton.interactable = false;
+    }
+
     private async void Start()
     {
-        var scriptData = await GenerateGayaAsync();
-        
-        if (scriptData != null && scriptData.Items != null)
+        try
         {
-            // JSONデータから ScriptableObject のリストに変換
-            List<DialogueLineData> generatedLines = ConvertToDialogueLines(scriptData);
+            var scriptData = await GenerateGayaAsync();
+            if (this == null)
+            {
+                return;
+            }
+            if (!TryValidateScriptData(scriptData, out int correctCount, out string reason))
+            {
+                Debug.LogWarning($"[CloudflareGeminiClient] 固定セリフを使用します: {reason}", this);
+                return;
+            }
+
+            var generatedLines = ConvertToDialogueLines(scriptData);
             
-            // 全体をパースして Debug.Log に流す
             string resultDump = DumpDialogueLines(generatedLines);
             Debug.Log(resultDump);
+
+            var lines = generatedLines;
+            scoreManager.SetMaxScoreFromCorrectCount(correctCount);
+            lineTarget.SetGayaLines(lines);
         }
-        
-        Debug.Log($"生成完了時間: {Time.realtimeSinceStartup}");
+        catch (OperationCanceledException)
+        {
+            // シーン破棄時は更新しない
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[CloudflareGeminiClient] 固定セリフを使用します: {e}", this);
+        }
+        finally
+        {
+            if (startButton != null)
+            {
+                startButton.interactable = true;
+            }
+        }
+    }
+
+    private static bool TryValidateScriptData(ScriptDataList scriptData, out int correctCount, out string reason)
+    {
+        correctCount = 0;
+        reason = null;
+        if (scriptData?.Items == null || scriptData.Items.Length == 0)
+        {
+            reason = "文章がありません。";
+            return false;
+        }
+
+        foreach (var sentence in scriptData.Items)
+        {
+            if (sentence == null || sentence.Words == null || sentence.Words.Length == 0)
+            {
+                reason = "単語配列がありません。";
+                return false;
+            }
+
+            var reconstructed = new StringBuilder();
+            foreach (var word in sentence.Words)
+            {
+                if (word == null || string.IsNullOrEmpty(word.Word) ||
+                    (word.Type != "correct" && word.Type != "miss" && word.Type != "plain") ||
+                    word.Word.Contains("<") || word.Word.Contains(">"))
+                {
+                    reason = "単語または type が不正です。";
+                    return false;
+                }
+                if (word.Type == "correct")
+                {
+                    if (string.IsNullOrWhiteSpace(word.Gaya))
+                    {
+                        reason = "正解単語の gaya がありません。";
+                        return false;
+                    }
+                    correctCount++;
+                }
+                reconstructed.Append(word.Word);
+            }
+
+            if (reconstructed.ToString() != sentence.Sentence)
+            {
+                reason = "sentence と words の連結結果が一致しません。";
+                return false;
+            }
+        }
+
+        if (correctCount == 0)
+        {
+            reason = "正解単語がありません。";
+            return false;
+        }
+        return true;
     }
 
     /// <summary>
@@ -96,6 +191,7 @@ public class CloudflareGeminiClient : MonoBehaviour
     {
         var resultList = new List<DialogueLineData>();
         int correctCount = 0; // "correct"の通し番号（00, 01, 02...）
+        int missCount = 0;
 
         foreach (var sentence in scriptData.Items)
         {
@@ -107,6 +203,12 @@ public class CloudflareGeminiClient : MonoBehaviour
 
             foreach (var word in sentence.Words)
             {
+                if (word.Type == "plain" && IsPlainFragment(word.Word))
+                {
+                    markupBuilder.Append(word.Word);
+                    continue;
+                }
+
                 string targetId;
                 
                 if (word.Type == "correct")
@@ -116,19 +218,22 @@ public class CloudflareGeminiClient : MonoBehaviour
                 }
                 else
                 {
-                    targetId = "m"; // miss の場合
+                    targetId = $"m{missCount++:D2}";
                 }
 
                 // マークアップテキストの構築 (<link="00">単語</link>)
                 markupBuilder.Append($"<link=\"{targetId}\">{word.Word}</link>");
 
-                // ターゲットデータの登録
-                lineData.targets.Add(new GayaTargetData
+                // GayaSystem は targets に存在する ID を正解と判定する
+                if (word.Type == "correct")
                 {
-                    targetId = targetId,
-                    keyword = word.Word,
-                    gayaPhrase = word.Gaya
-                });
+                    lineData.targets.Add(new GayaTargetData
+                    {
+                        targetId = targetId,
+                        keyword = word.Word,
+                        gayaPhrase = word.Gaya
+                    });
+                }
             }
 
             lineData.markedUpText = markupBuilder.ToString();
@@ -136,6 +241,23 @@ public class CloudflareGeminiClient : MonoBehaviour
         }
 
         return resultList;
+    }
+
+    // plain の指定が広すぎても、意味のあるまとまりをリンクから外さない。
+    private static bool IsPlainFragment(string word)
+    {
+        string core = word.Trim().Trim('、', '。', '！', '!', '？', '?');
+        switch (core)
+        {
+            case "":
+            case "が": case "は": case "を": case "に": case "で": case "と":
+            case "の": case "へ": case "も": case "や": case "か":
+            case "ね": case "よ": case "から": case "まで": case "より":
+            case "です": case "ます": case "でした": case "ました":
+                return true;
+            default:
+                return false;
+        }
     }
 
     /// <summary>
@@ -167,6 +289,7 @@ public class CloudflareGeminiClient : MonoBehaviour
 
         using (var request = new UnityWebRequest(proxyUrl, "POST"))
         {
+            request.timeout = 30;
             byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonBody);
             request.uploadHandler = new UploadHandlerRaw(bodyRaw);
             request.downloadHandler = new DownloadHandlerBuffer();
@@ -174,11 +297,14 @@ public class CloudflareGeminiClient : MonoBehaviour
 
             try
             {
-                await request.SendWebRequest();
+                await request.SendWebRequest().WithCancellation(destroyCancellationToken);
 
                 var responseData = JsonUtility.FromJson<GeminiResponse>(request.downloadHandler.text);
                 
-                if (responseData != null && responseData.Candidates != null && responseData.Candidates.Length > 0)
+                if (responseData?.Candidates != null && responseData.Candidates.Length > 0 &&
+                    responseData.Candidates[0]?.Content?.Parts != null &&
+                    responseData.Candidates[0].Content.Parts.Length > 0 &&
+                    !string.IsNullOrWhiteSpace(responseData.Candidates[0].Content.Parts[0]?.Text))
                 {
                     string rawJsonText = responseData.Candidates[0].Content.Parts[0].Text;
                     
@@ -190,9 +316,13 @@ public class CloudflareGeminiClient : MonoBehaviour
                 
                 return null;
             }
-            catch (UnityWebRequestException e)
+            catch (OperationCanceledException)
             {
-                Debug.LogError($"Error: {e.Message}");
+                throw;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[CloudflareGeminiClient] 生成に失敗しました: {e.Message}", this);
                 return null;
             }
         }
