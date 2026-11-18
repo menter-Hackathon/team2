@@ -75,6 +75,13 @@ public class GayaScoreManager : MonoBehaviour
         }
     }
 
+    /// <summary>生成したセリフの正解数に合わせてスコア上限を更新する。</summary>
+    public void SetMaxScoreFromCorrectCount(int correctCount)
+    {
+        _maxScore = Mathf.Max(1, correctCount * _gayaPoint);
+        ResetScore();
+    }
+
     /// <summary>
     /// 表示中のスコアポップアップをすべて破棄する。
     /// </summary>

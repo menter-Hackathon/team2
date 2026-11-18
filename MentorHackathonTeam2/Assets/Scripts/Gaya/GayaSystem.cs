@@ -5,6 +5,8 @@ using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 /// <summary>
 /// ガヤゲームのテキストシステム本体。
@@ -17,6 +19,18 @@ public class GayaSystem : MonoBehaviour
     [Tooltip("セリフを表示する TextMeshProUGUI")]
     [SerializeField] private TextMeshProUGUI _text;
 
+    [Header("シーン別スライド遷移（Day2用）")]
+    [Tooltip("スライド遷移を有効にするシーン名")]
+    [SerializeField] private string _slideSceneName = "Day2";
+    [Tooltip("複製・スライド移動させる対象UIのルート RectTransform")]
+    [SerializeField] private RectTransform _gameplayUiRoot;
+    [Tooltip("複製UIの初期Xオフセットおよびスライド移動量")]
+    [SerializeField] private float _slideOffsetX = 900f;
+    [Tooltip("スライド移動にかかる時間（秒）")]
+    [SerializeField] private float _slideDuration = 0.5f;
+    [Tooltip("スライド移動のイージング")]
+    [SerializeField] private Ease _slideEase = Ease.OutCubic;
+
     [Header("セリフ")]
     [Tooltip("再生するセリフデータ一覧（上から順に再生）")]
     [SerializeField] private List<DialogueLineData> _lines = new List<DialogueLineData>();
@@ -24,6 +38,10 @@ public class GayaSystem : MonoBehaviour
     [SerializeField] private bool _loop = true;
     [Tooltip("Start 時に自動でシーケンスを開始するか")]
     [SerializeField] private bool _playOnStart = true;
+
+    [Header("スキップ")]
+    [Tooltip("スキップ可能なセリフの再生中だけ表示するボタン（任意）")]
+    [SerializeField] private Button _skipButton;
 
     [Header("ガヤ吹き出し")]
     [Tooltip("ガヤ成功時に生成する吹き出しのプレハブ（GayaSpeechBubble 付き）")]
@@ -64,6 +82,11 @@ public class GayaSystem : MonoBehaviour
     private readonly object _claimLock = new object();
     private readonly Dictionary<string, ClaimRecord> _claimedBy = new Dictionary<string, ClaimRecord>();
     private DialogueLineData _currentLine;
+    private DialogueLineData _linePreparedBySlide;
+    private CancellationTokenSource _skipLineCancellation;
+    private bool _skipRequested;
+    private bool _isTransitioning;
+    private Tween _slideTween;
     private readonly Dictionary<RectTransform, GayaSpeechBubble> _occupiedSpawnPoints = new Dictionary<RectTransform, GayaSpeechBubble>();
     private readonly List<RectTransform> _spawnCandidates = new List<RectTransform>();
 
@@ -94,6 +117,12 @@ public class GayaSystem : MonoBehaviour
         set => _loop = value;
     }
 
+    /// <summary>現在のセリフ表示に使っている TextMeshProUGUI。</summary>
+    public TextMeshProUGUI CurrentText => _text;
+
+    /// <summary>セリフUIがスライド遷移中か。</summary>
+    public bool IsTransitioning => _isTransitioning;
+
     /// <summary>
     /// 表示中のガヤ吹き出しをすべて破棄し、出現地点の占有状態をリセットする。
     /// </summary>
@@ -110,17 +139,58 @@ public class GayaSystem : MonoBehaviour
         }
     }
 
+    /// <summary>メッシュ変更監視とスキップボタンのクリック通知を登録する。</summary>
     private void OnEnable()
     {
         // レイアウト変更などで TMP がメッシュを再生成した場合にも色を維持するための保険
         TMPro_EventManager.TEXT_CHANGED_EVENT.Add(OnTextChanged);
+        if (_skipButton != null)
+        {
+            _skipButton.onClick.AddListener(OnSkipButtonClicked);
+            SetSkipButtonVisible(_currentLine != null && _currentLine.isSkippable && !_skipRequested);
+        }
     }
 
+    /// <summary>登録済み通知を解除し、実行中のスライドTweenを停止する。</summary>
     private void OnDisable()
     {
         TMPro_EventManager.TEXT_CHANGED_EVENT.Remove(OnTextChanged);
+        if (_slideTween != null && _slideTween.IsActive())
+        {
+            _slideTween.Kill();
+        }
+        _slideTween = null;
+        if (_skipButton != null)
+        {
+            _skipButton.onClick.RemoveListener(OnSkipButtonClicked);
+            SetSkipButtonVisible(false);
+        }
     }
 
+    /// <summary>スキップ可能なセリフを中断する。スライド遷移中は処理しない。</summary>
+    private void OnSkipButtonClicked()
+    {
+        if (_isTransitioning || _currentLine == null || !_currentLine.isSkippable || _skipLineCancellation == null || _skipRequested)
+        {
+            return;
+        }
+
+        _skipRequested = true;
+        SetSkipButtonVisible(false);
+        _skipLineCancellation.Cancel();
+    }
+
+    /// <summary>スキップボタンの表示を切り替える。遷移中は常に非表示にする。</summary>
+    private void SetSkipButtonVisible(bool visible)
+    {
+        visible = visible && !_isTransitioning;
+        if (_skipButton != null && _skipButton.gameObject.activeSelf != visible)
+        {
+            _skipButton.gameObject.SetActive(visible);
+        }
+    }
+
+    /// <summary>設定に応じてセリフシーケンスを開始する。</summary>
     private void Start()
     {
         if (_playOnStart)
@@ -146,12 +216,14 @@ public class GayaSystem : MonoBehaviour
         {
             do
             {
-                foreach (DialogueLineData line in _lines)
+                for (int i = 0; i < _lines.Count; i++)
                 {
                     ct.ThrowIfCancellationRequested();
+                    DialogueLineData line = _lines[i];
                     if (line != null)
                     {
-                        await PlayLineAsync(line, ct);
+                        DialogueLineData nextLine = FindNextLine(i + 1);
+                        await PlayLineAsync(line, nextLine, ct);
                     }
                 }
             }
@@ -218,7 +290,7 @@ public class GayaSystem : MonoBehaviour
     /// <returns>操作可能なら true。</returns>
     public bool IsTargetInteractable(string targetId)
     {
-        if (string.IsNullOrEmpty(targetId) || _claimedBy.ContainsKey(targetId))
+        if (_isTransitioning || string.IsNullOrEmpty(targetId) || _claimedBy.ContainsKey(targetId))
         {
             return false;
         }
@@ -307,28 +379,259 @@ public class GayaSystem : MonoBehaviour
     /// <summary>
     /// セリフ1行分のライフサイクル（文字送り → 維持 → 消去 → 待機）を実行する。
     /// </summary>
-    private async UniTask PlayLineAsync(DialogueLineData line, CancellationToken ct)
+    private async UniTask PlayLineAsync(DialogueLineData line, DialogueLineData nextLine, CancellationToken ct)
     {
-        lock (_claimLock)
+        bool lineWasPreparedBySlide = _linePreparedBySlide == line;
+        if (lineWasPreparedBySlide)
         {
-            _claimedBy.Clear();
+            _linePreparedBySlide = null;
         }
-        _currentLine = line;
 
-        _text.text = line.markedUpText;
-        _text.maxVisibleCharacters = 0;
-        _text.ForceMeshUpdate();
+        using (var skipLineCancellation = CancellationTokenSource.CreateLinkedTokenSource(ct))
+        {
+            _skipLineCancellation = skipLineCancellation;
+            _skipRequested = false;
+            lock (_claimLock)
+            {
+                _claimedBy.Clear();
+            }
+            _currentLine = line;
 
-        int totalChars = _text.textInfo.characterCount;
-        await TypeCharactersAsync(totalChars, line.charInterval, ct);
+            if (!lineWasPreparedBySlide)
+            {
+                _text.text = line.markedUpText;
+                _text.ForceMeshUpdate();
+                _text.maxVisibleCharacters = line.charInterval <= 0f ? _text.textInfo.characterCount : 0;
+            }
+            SetSkipButtonVisible(line.isSkippable);
 
-        await UniTask.Delay(TimeSpan.FromSeconds(line.postDisplayWait), cancellationToken: ct);
+            bool transitionedToNextLine = false;
+            try
+            {
+                int totalChars = _text.textInfo.characterCount;
+                if (!lineWasPreparedBySlide)
+                {
+                    await TypeCharactersAsync(totalChars, line.charInterval, skipLineCancellation.Token);
+                }
 
-        _text.maxVisibleCharacters = 0;
-        _text.text = string.Empty;
-        _currentLine = null;
+                await UniTask.Delay(TimeSpan.FromSeconds(line.postDisplayWait), cancellationToken: skipLineCancellation.Token);
 
-        await UniTask.Delay(TimeSpan.FromSeconds(line.nextLineWait), cancellationToken: ct);
+                SetSkipButtonVisible(false);
+                if (nextLine != null && IsSlideSceneActive())
+                {
+                    transitionedToNextLine = await SlideToNextLineAsync(nextLine, skipLineCancellation.Token);
+                }
+
+                if (!transitionedToNextLine)
+                {
+                    _text.maxVisibleCharacters = 0;
+                    _text.text = string.Empty;
+                    _currentLine = null;
+                    await UniTask.Delay(TimeSpan.FromSeconds(line.nextLineWait), cancellationToken: skipLineCancellation.Token);
+                }
+            }
+            catch (OperationCanceledException) when (_skipRequested && !ct.IsCancellationRequested)
+            {
+                SetSkipButtonVisible(false);
+                if (nextLine != null && IsSlideSceneActive())
+                {
+                    transitionedToNextLine = await SlideToNextLineAsync(nextLine, ct);
+                }
+            }
+            finally
+            {
+                SetSkipButtonVisible(false);
+                if (!transitionedToNextLine && _text != null)
+                {
+                    _text.maxVisibleCharacters = 0;
+                    _text.text = string.Empty;
+                }
+                if (!transitionedToNextLine)
+                {
+                    _currentLine = null;
+                }
+                _skipLineCancellation = null;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 指定位置以降で最初に見つかるセリフを返す。ループ先頭への遷移は最終行として扱う。
+    /// </summary>
+    /// <param name="startIndex">検索開始位置。</param>
+    /// <returns>次のセリフ。後続がない場合は null。</returns>
+    private DialogueLineData FindNextLine(int startIndex)
+    {
+        for (int i = startIndex; i < _lines.Count; i++)
+        {
+            if (_lines[i] != null)
+            {
+                return _lines[i];
+            }
+        }
+        return null;
+    }
+
+    /// <summary>アクティブシーンがスライド遷移対象かを返す。</summary>
+    private bool IsSlideSceneActive()
+    {
+        return SceneManager.GetActiveScene().name == _slideSceneName;
+    }
+
+    /// <summary>
+    /// 次のセリフを複製UIに準備し、現在のUIと同時に左へスライドする。
+    /// </summary>
+    /// <param name="nextLine">スライド後に表示するセリフ。</param>
+    /// <param name="ct">中断用トークン。</param>
+    /// <returns>スライドと参照の引き継ぎが完了した場合 true。</returns>
+    private async UniTask<bool> SlideToNextLineAsync(DialogueLineData nextLine, CancellationToken ct)
+    {
+        if (_gameplayUiRoot == null)
+        {
+            Debug.LogWarning("[GayaSystem] Day2 スライド遷移には _gameplayUiRoot の設定が必要です。", this);
+            return false;
+        }
+
+        RectTransform oldRoot = _gameplayUiRoot;
+        Vector2 oldAnchoredPosition = oldRoot.anchoredPosition;
+        Transform oldSkipButtonParent = _skipButton != null && _skipButton.transform.IsChildOf(oldRoot)
+            ? _skipButton.transform
+            : null;
+        int[] skipButtonPath = oldSkipButtonParent != null
+            ? GetChildIndexPath(oldRoot, oldSkipButtonParent)
+            : null;
+
+        RectTransform nextRoot = Instantiate(oldRoot, oldRoot.parent, false);
+        nextRoot.transform.SetSiblingIndex(0);
+        nextRoot.anchoredPosition = oldRoot.anchoredPosition + new Vector2(_slideOffsetX, 0f);
+
+        TextMeshProUGUI nextText = nextRoot.GetComponentInChildren<TextMeshProUGUI>(true);
+        if (nextText == null)
+        {
+            Debug.LogError("[GayaSystem] 複製した _gameplayUiRoot 内に TextMeshProUGUI がありません。", nextRoot);
+            Destroy(nextRoot.gameObject);
+            return false;
+        }
+
+        Button nextSkipButton = null;
+        if (skipButtonPath != null)
+        {
+            Transform clonedButtonTransform = GetChildAtPath(nextRoot, skipButtonPath);
+            if (clonedButtonTransform == null || !clonedButtonTransform.TryGetComponent(out nextSkipButton))
+            {
+                Debug.LogError("[GayaSystem] 複製したUI内のスキップボタンを特定できません。", nextRoot);
+                Destroy(nextRoot.gameObject);
+                return false;
+            }
+        }
+
+        nextText.text = nextLine.markedUpText;
+        nextText.ForceMeshUpdate();
+        nextText.maxVisibleCharacters = nextText.textInfo.characterCount;
+
+        _isTransitioning = true;
+        SetSkipButtonVisible(false);
+        if (nextSkipButton != null)
+        {
+            nextSkipButton.gameObject.SetActive(false);
+        }
+
+        UniTaskCompletionSource completion = new UniTaskCompletionSource();
+        bool transferred = false;
+        try
+        {
+            Sequence sequence = DOTween.Sequence()
+                .Join(oldRoot.DOAnchorPosX(oldRoot.anchoredPosition.x - _slideOffsetX, _slideDuration))
+                .Join(nextRoot.DOAnchorPosX(nextRoot.anchoredPosition.x - _slideOffsetX, _slideDuration))
+                .SetEase(_slideEase)
+                .SetLink(gameObject);
+            _slideTween = sequence
+                .OnComplete(() => completion.TrySetResult())
+                .OnKill(() => completion.TrySetCanceled());
+
+            using (ct.Register(() =>
+            {
+                if (_slideTween != null && _slideTween.IsActive())
+                {
+                    _slideTween.Kill();
+                }
+            }))
+            {
+                await completion.Task;
+            }
+
+            ct.ThrowIfCancellationRequested();
+
+            lock (_claimLock)
+            {
+                _claimedBy.Clear();
+            }
+            _text = nextText;
+            _gameplayUiRoot = nextRoot;
+            _currentLine = nextLine;
+            _linePreparedBySlide = nextLine;
+
+            if (nextSkipButton != null)
+            {
+                _skipButton.onClick.RemoveListener(OnSkipButtonClicked);
+                _skipButton = nextSkipButton;
+                _skipButton.onClick.AddListener(OnSkipButtonClicked);
+            }
+
+            Destroy(oldRoot.gameObject);
+            transferred = true;
+            return true;
+        }
+        finally
+        {
+            if (_slideTween != null && _slideTween.IsActive())
+            {
+                _slideTween.Kill();
+            }
+            _slideTween = null;
+            if (!transferred && nextRoot != null)
+            {
+                Destroy(nextRoot.gameObject);
+            }
+            if (!transferred && oldRoot != null)
+            {
+                oldRoot.anchoredPosition = oldAnchoredPosition;
+            }
+            _isTransitioning = false;
+        }
+    }
+
+    /// <summary>子孫Transformへの各階層のSiblingIndexを取得する。</summary>
+    private int[] GetChildIndexPath(Transform root, Transform child)
+    {
+        var indices = new List<int>();
+        Transform current = child;
+        while (current != root && current != null)
+        {
+            indices.Add(current.GetSiblingIndex());
+            current = current.parent;
+        }
+        if (current != root)
+        {
+            return null;
+        }
+        indices.Reverse();
+        return indices.ToArray();
+    }
+
+    /// <summary>SiblingIndexの配列で指定した子孫Transformを取得する。</summary>
+    private Transform GetChildAtPath(Transform root, int[] path)
+    {
+        Transform current = root;
+        foreach (int childIndex in path)
+        {
+            if (childIndex < 0 || childIndex >= current.childCount)
+            {
+                return null;
+            }
+            current = current.GetChild(childIndex);
+        }
+        return current;
     }
 
     /// <summary>
@@ -339,6 +642,15 @@ public class GayaSystem : MonoBehaviour
     {
         if (totalChars <= 0)
         {
+            return;
+        }
+
+        if (interval <= 0f)
+        {
+            print("a");
+            ct.ThrowIfCancellationRequested();
+            _text.maxVisibleCharacters = totalChars;
+            RefreshMeshAndColors();
             return;
         }
 
@@ -529,5 +841,14 @@ public class GayaSystem : MonoBehaviour
             Debug.LogWarning($"[GayaSystem] おてつき吹き出しのフォーマットが不正です: {_missBubbleFormat}", this);
             return linkText;
         }
+    }
+
+    /// <summary>
+    /// 使用するガヤ文章を外部から書き換える関数
+    /// </summary>
+    /// <param name="newLines"></param>
+    public void SetGayaLines(List<DialogueLineData> newLines)
+    {
+        _lines = newLines;
     }
 }
