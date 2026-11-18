@@ -5,11 +5,12 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Photon.Pun;
 
 /// <summary>
 /// ガヤゲーム全体の進行（遊び方パネル → 本編 → リザルト）を管理するクラス。
 /// </summary>
-public class GayaGameFlowManager : MonoBehaviour
+public class GayaGameFlowManager : MonoBehaviourPun
 {
     /// <summary>ゲームの進行状態。</summary>
     public enum FlowState
@@ -64,6 +65,11 @@ public class GayaGameFlowManager : MonoBehaviour
 
     private FlowState _state = FlowState.HowToPlay;
 
+    private bool _isMyReady = false;
+    private bool _isOpponentReady = false;
+
+    private bool _isGameStarted = false;
+
     /// <summary>現在の進行状態。</summary>
     public FlowState State => _state;
 
@@ -106,7 +112,32 @@ public class GayaGameFlowManager : MonoBehaviour
         {
             return;
         }
-        RunGameAsync(destroyCancellationToken).Forget();
+        
+        Debug.Log("自分がボタンを押しました");
+        _isMyReady = true;
+        CheckReady();
+
+        // 相手にもログを送る
+        photonView.RPC(nameof(OnOpponentButtonClicked), RpcTarget.Others);
+    }
+
+    [PunRPC]
+    private void OnOpponentButtonClicked()
+    {
+        Debug.Log("相手がボタンを押しました");
+        _isOpponentReady = true;
+        CheckReady();
+    }
+
+    private void CheckReady()
+    {
+        if(_isMyReady && _isOpponentReady && !_isGameStarted)
+        {
+            _isGameStarted = true;
+
+            Debug.Log("2人とも準備完了！ゲーム開始！");
+            RunGameAsync(destroyCancellationToken).Forget();
+        }
     }
 
     /// <summary>

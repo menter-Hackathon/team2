@@ -8,6 +8,9 @@
     private void Start() 
     {
         Debug.Log("Start実行");
+
+        PhotonNetwork.AutomaticallySyncScene = true;
+
         PhotonNetwork.NickName = "Player";
         PhotonNetwork.ConnectUsingSettings();
     }
@@ -34,8 +37,6 @@
         Debug.Log("ルームに参加しました");
         Debug.Log("ルーム名：" + PhotonNetwork.CurrentRoom.Name);
 
-        var position = new Vector3(Random.Range(-3f, 3f), Random.Range(-3f, 3f));
-        PhotonNetwork.Instantiate("Avatar", position, Quaternion.identity);
 
         if (PhotonNetwork.IsMasterClient) 
         {
@@ -46,6 +47,19 @@
         if(PhotonNetwork.CurrentRoom.PlayerCount == PhotonNetwork.CurrentRoom.MaxPlayers)
         {
             PhotonNetwork.CurrentRoom.IsOpen = false;
+        }
+    }
+
+    public override void OnPlayerEnteredRoom(Player newPlayer)
+    {
+        // ルームの人数が２人になったか確認
+        if(PhotonNetwork.CurrentRoom.PlayerCount ==2)
+        {
+            // マスタークライアントだけがシーンを移動する
+            if(PhotonNetwork.IsMasterClient)
+            {
+                PhotonNetwork.LoadLevel("mmm_Day1");
+            }
         }
     }
 

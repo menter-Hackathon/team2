@@ -4,6 +4,12 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/WorkingFolder/Mumumu/Matching.unity
+    guid: 86a99d059f9724243893814fb7ad9b76
+  - enabled: 1
+    path: Assets/WorkingFolder/Mumumu/mmm_Day1.unity
+    guid: 4423396024a3cc544a7eccc6f58d37a5
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
