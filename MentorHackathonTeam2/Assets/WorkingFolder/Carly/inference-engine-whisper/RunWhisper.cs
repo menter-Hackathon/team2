@@ -33,8 +33,11 @@ public class RunWhisper : MonoBehaviour
     // Maximum size of audioClip (30s at 16kHz)
     const int maxSamples = 30 * 16000;
 
+    public float latestVolume = 0f; // しゃべり終わったときの平均音量
+
     [Header("マイク＆キーワード設定")]
-    public float voiceThreshold = 0.02f;  // 話し始めとみなす音量
+    public float voiceThreshold = 0.04f;  // 話し始めとみなす音量
+    public float minSpeechVolume = 0.008f; //音量のしきい値
     public float silenceDuration = 0.7f; // 話し終わりとみなす無音秒数
     public string[] targetKeywords = new string[] { "おはよう", "オハヨウ" }; //キーワード
 
@@ -120,7 +123,35 @@ public class RunWhisper : MonoBehaviour
                 if (silenceTimer >= silenceDuration) //話し終わりを判断
                 {
                     isSpeaking = false;
-                    float[] audioData = ExtractMicAudio(speechStartPos, currentPos);
+                    float[] audioData = ExtractMicAudio(speechStartPos, currentPos); //音声データを切り出す
+                    
+                    // 平均音量の計算
+                    int length = (currentPos - speechStartPos + micClip.samples) % micClip.samples;
+                    float activeSum = 0f;
+                    int activeCount = 0;
+                    float totalSum = 0f;
+                    for (int i = 0; i < length; i++)
+                    {
+                        float abs = Mathf.Abs(audioData[i]);
+                        totalSum += abs;
+
+                        if (abs > voiceThreshold * 0.5f) //話している部分だけを平均音調に反映
+                        {
+                            activeSum += abs;
+                            activeCount++;
+                        }
+                    }
+                    
+                    float overallAvg = (length > 0) ? (totalSum / length) : 0f;
+                    latestVolume = (activeCount > 0) ? (activeSum / activeCount) : 0f;
+
+                    // ノイズの判断
+                    if (overallAvg < minSpeechVolume || activeCount < sampleRate * 0.15f)
+                    {
+                        Debug.Log($"<color=gray>ノイズ処理 (全体平均: {overallAvg:F4})</color>");
+                        return;
+                    }
+
                     _ = RunWhisperAsync(audioData);
                 }
             }
@@ -247,7 +278,7 @@ public class RunWhisper : MonoBehaviour
             }
 
             string outputString = Encoding.UTF8.GetString(outputBytes.ToArray());
-            Debug.Log($"【最終結果】: {outputString}");
+            Debug.Log($"【最終結果】: 「{outputString}」 | 平均音量: {latestVolume:F3}");
 
             foreach (string keyword in targetKeywords)
             {

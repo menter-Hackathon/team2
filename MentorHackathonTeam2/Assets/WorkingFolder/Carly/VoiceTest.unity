@@ -352,7 +352,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8664111a9a8f67646a846842c3ae9ea3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RunWhisper
-  voiceThreshold: 0.1
+  latestVolume: 0
+  voiceThreshold: 0.04
   silenceDuration: 0.7
   targetKeywords:
   - "\u304A\u306F\u3088\u3046"
