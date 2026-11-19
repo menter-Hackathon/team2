@@ -131,13 +131,39 @@ public class GayaGameFlowManager : MonoBehaviourPun
 
     private void CheckReady()
     {
+        // ゲーム開始の決定はMasterClientだけが行う
+        if(!PhotonNetwork.IsMasterClient)
+        {
+            return;
+        }
+
         if(_isMyReady && _isOpponentReady && !_isGameStarted)
         {
             _isGameStarted = true;
 
             Debug.Log("2人とも準備完了！ゲーム開始！");
-            RunGameAsync(destroyCancellationToken).Forget();
+            
+            // 1.5秒後をゲーム開始時刻にする
+            double startTime = PhotonNetwork.Time + 1.5;
+
+            // 2人いｎ同じ開始時刻を通知
+            photonView.RPC(nameof(StartGameAt), RpcTarget.All, startTime);
         }
+        
+    }
+
+    [PunRPC]
+    private void StartGameAt(double startTime)
+    {
+        StartGameAtAsync(startTime, destroyCancellationToken).Forget();
+    }
+
+    private async UniTaskVoid StartGameAtAsync(double startTime, CancellationToken ct)
+    {
+        // Photonの共通時刻が開始時刻になるまで待つ
+        await UniTask.WaitUntil(() => PhotonNetwork.Time >= startTime, cancellationToken: ct);
+        
+        RunGameAsync(ct).Forget();
     }
 
     /// <summary>

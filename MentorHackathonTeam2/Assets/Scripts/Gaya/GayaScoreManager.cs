@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using Photon.Pun;
 
 /// <summary>
 /// <see cref="GayaSystem"/> のクリック結果を受けてスコアを加減算し、
@@ -102,6 +103,14 @@ public class GayaScoreManager : MonoBehaviour
     /// </summary>
     private void HandleWordClaimed(string targetId, string playerId, string phrase, bool isGayaWord, RectTransform spawnPoint)
     {
+        // 自分がとった的でなければスコアを変更しない
+        string myPlayerId = PhotonNetwork.LocalPlayer.ActorNumber.ToString();
+
+        if(playerId != myPlayerId)
+        {
+            return;
+        }
+
         int requested = isGayaWord ? _gayaPoint : -Mathf.Abs(_missPenalty);
         int newScore = Mathf.Clamp(_score + requested, 0, _maxScore);
         int actualDelta = newScore - _score;

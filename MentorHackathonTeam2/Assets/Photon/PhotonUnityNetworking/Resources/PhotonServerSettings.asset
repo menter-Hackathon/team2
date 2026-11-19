@@ -41,6 +41,9 @@ MonoBehaviour:
   - Fire
   - RespawnSpaceship
   - OnOpponentButtonClicked
+  - RequestClaimWord
+  - ApplyClaimWord
+  - StartGameAt
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 0

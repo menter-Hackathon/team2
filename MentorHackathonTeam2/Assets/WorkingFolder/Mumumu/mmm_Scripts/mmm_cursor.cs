@@ -54,7 +54,7 @@ public class mmm_cursor : MonoBehaviourPun, IPunObservable
 
             if (isPressed && !string.IsNullOrEmpty(hoveredId))
             {
-                _gayaSystem.TryClaimWord(hoveredId, LocalPlayerId);
+                _gayaSystem.photonView.RPC("RequestClaimWord", RpcTarget.MasterClient, PhotonNetwork.LocalPlayer.ActorNumber.ToString());
             }
         }
         else
