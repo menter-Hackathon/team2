@@ -212,7 +212,7 @@ public class RunWhisper : MonoBehaviour
                 decoder1.Schedule();
 
                 decoder2.SetInput("input_ids", lastTokenTensor);
-                for (int i = 0; i < 4; i++)
+                for (int i = 0; i < 6; i++) //tinyなら４、baseなら６
                 {
                     decoder2.SetInput($"past_key_values.{i}.decoder.key", decoder1.PeekOutput($"present.{i}.decoder.key") as Tensor<float>);
                     decoder2.SetInput($"past_key_values.{i}.decoder.value", decoder1.PeekOutput($"present.{i}.decoder.value") as Tensor<float>);

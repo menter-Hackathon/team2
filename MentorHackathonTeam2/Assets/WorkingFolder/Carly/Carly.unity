@@ -352,14 +352,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8664111a9a8f67646a846842c3ae9ea3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RunWhisper
-  voiceThreshold: 0.04
+  voiceThreshold: 0.1
   silenceDuration: 0.7
   targetKeywords:
   - "\u304A\u306F\u3088\u3046"
   - "\u30AA\u30CF\u30E8\u30A6"
-  audioDecoder1: {fileID: 5022602860645237092, guid: c7e3b51b0fbd62348b6927f68b318921, type: 3}
-  audioDecoder2: {fileID: 5022602860645237092, guid: 5930ea576ec5a2a4c935f07fb8fd287c, type: 3}
-  audioEncoder: {fileID: 5022602860645237092, guid: 137a0f2fffe68054392e23ef968e857b, type: 3}
+  audioDecoder1: {fileID: 5022602860645237092, guid: 354927f7e58d3174e9dc53cee0367f29, type: 3}
+  audioDecoder2: {fileID: 5022602860645237092, guid: 8f1a5df017e7cac42943dc9fa14890b8, type: 3}
+  audioEncoder: {fileID: 5022602860645237092, guid: 80651e4505803114da6212b012614318, type: 3}
   logMelSpectro: {fileID: 5022602860645237092, guid: d1ef0fa059427ad40a7f61f4d7834ebd, type: 3}
   vocabAsset: {fileID: 4900000, guid: 1a9cc951774fc834fb2dad990cff6cbd, type: 3}
 --- !u!1660057539 &9223372036854775807
