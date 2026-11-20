@@ -38,7 +38,8 @@ public sealed class TitleSelectController : MonoBehaviour
 
     [Header("タイトル")]
     [SerializeField] private GameObject _titleHud;
-    [SerializeField] private RectTransform _titleArtworkRect;
+    [Tooltip("ロゴと影をまとめたTitle Block")]
+    [SerializeField] private RectTransform _titleArtworkGroupRect;
     [SerializeField] private TMP_InputField _nicknameInput;
     [SerializeField] private Button _continueButton;
 
@@ -60,7 +61,7 @@ public sealed class TitleSelectController : MonoBehaviour
     private RectTransform _upRect;
     private RectTransform _downRect;
     private Vector2 _titleHome;
-    private Vector2 _titleArtworkHome;
+    private Vector2 _titleArtworkGroupHome;
     private Vector2 _continueHome;
     private Vector2 _upHome;
     private Vector2 _downHome;
@@ -79,7 +80,7 @@ public sealed class TitleSelectController : MonoBehaviour
         _nicknameInput.readOnly = false;
         _nicknameInput.interactable = true;
         _titleRect = (RectTransform)_titleHud.transform;
-        _titleArtworkHome = _titleArtworkRect.anchoredPosition;
+        _titleArtworkGroupHome = _titleArtworkGroupRect.anchoredPosition;
         _continueRect = (RectTransform)_continueButton.transform;
         _upRect = (RectTransform)_upButton.transform;
         _downRect = (RectTransform)_downButton.transform;
@@ -111,8 +112,8 @@ public sealed class TitleSelectController : MonoBehaviour
         _continueButton.gameObject.SetActive(true);
         _navigationHud.SetActive(false);
         UpdateContinueButton();
-        _titleArtworkRect.anchoredPosition = _titleArtworkHome + ArtworkEntranceOffset;
-        _titleArtworkRect.DOAnchorPos(_titleArtworkHome, ArtworkEntranceDuration)
+        _titleArtworkGroupRect.anchoredPosition = _titleArtworkGroupHome + ArtworkEntranceOffset;
+        _titleArtworkGroupRect.DOAnchorPos(_titleArtworkGroupHome, ArtworkEntranceDuration)
             .SetEase(Ease.OutCubic).SetUpdate(true);
         AudioManager.Instance.PlayBgm(_titleBgm);
     }
@@ -128,7 +129,7 @@ public sealed class TitleSelectController : MonoBehaviour
         if (_upButton != null) _upButton.onClick.RemoveListener(MoveUp);
         if (_downButton != null) _downButton.onClick.RemoveListener(MoveDown);
         if (_titleRect != null) _titleRect.DOKill();
-        if (_titleArtworkRect != null) _titleArtworkRect.DOKill();
+        if (_titleArtworkGroupRect != null) _titleArtworkGroupRect.DOKill();
         if (_continueRect != null) _continueRect.DOKill();
         if (_upRect != null) _upRect.DOKill();
         if (_downRect != null) _downRect.DOKill();
@@ -138,7 +139,7 @@ public sealed class TitleSelectController : MonoBehaviour
     {
         if (_catalog == null || _catalog.Count != 4 || _daySections == null || _daySections.Length != 4
             || _brain == null || _cameras == null || _cameras.Length != 5 || _titleHud == null
-            || _titleArtworkRect == null
+            || _titleArtworkGroupRect == null
             || _nicknameInput == null || _continueButton == null || _navigationHud == null
             || _upButton == null || _upButtonText == null || _downButton == null || _downButtonText == null)
             return false;
