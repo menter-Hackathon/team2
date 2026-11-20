@@ -21,9 +21,12 @@ public sealed class ResultRankPresenter : MonoBehaviour
         [SerializeField] private GameObject _imageObject;
         [Tooltip("この画像を表示する前の待機時間（秒）")]
         [SerializeField, Min(0f)] private float _delayBeforeShow;
+        [Tooltip("この画像の表示時に再生する効果音（任意）")]
+        [SerializeField] private AudioClip _showSe;
 
         public GameObject ImageObject => _imageObject;
         public float DelayBeforeShow => _delayBeforeShow;
+        public AudioClip ShowSe => _showSe;
     }
 
     [Header("段階表示画像")]
@@ -39,6 +42,8 @@ public sealed class ResultRankPresenter : MonoBehaviour
     [SerializeField, Min(0f)] private float _scoreCountDuration = 1f;
     [Tooltip("スコア表示書式。{0} がスコア値に置換される")]
     [SerializeField] private string _scoreFormat = "{0}";
+    [Tooltip("スコアカウントアップ開始時に再生する効果音（任意）")]
+    [SerializeField] private AudioClip _scoreCountTickSe;
 
     [Header("フィードバック")]
     [Tooltip("タイプライター表示するメッセージテキスト")]
@@ -47,6 +52,8 @@ public sealed class ResultRankPresenter : MonoBehaviour
     [SerializeField, Min(0f)] private float _delayBeforeFeedback = 0.3f;
     [Tooltip("メッセージの1文字あたりの表示間隔（秒）")]
     [SerializeField, Min(0f)] private float _feedbackCharInterval = 0.05f;
+    [Tooltip("ランク演出開始時に再生するファンファーレ（任意）")]
+    [SerializeField] private AudioClip _rankFanfareSe;
 
     [Header("次へボタン")]
     [Tooltip("すべてのリザルト演出が終わったあとに表示するボタン")]
@@ -82,6 +89,7 @@ public sealed class ResultRankPresenter : MonoBehaviour
             }
 
             InitializePresentation();
+            AudioManager.Instance?.PlaySe(_rankFanfareSe);
 
             foreach (ImageStep step in _imageSteps)
             {
@@ -93,6 +101,7 @@ public sealed class ResultRankPresenter : MonoBehaviour
 
                 await DelayAsync(step.DelayBeforeShow, token);
                 step.ImageObject.SetActive(true);
+                AudioManager.Instance?.PlaySe(step.ShowSe);
             }
 
             await DelayAsync(_delayBeforeScore, token);
@@ -153,6 +162,8 @@ public sealed class ResultRankPresenter : MonoBehaviour
     /// </summary>
     private async UniTask CountScoreAsync(int finalScore, CancellationToken cancellationToken)
     {
+        AudioManager.Instance?.PlaySe(_scoreCountTickSe);
+
         int displayedScore = 0;
         Tween tween = DOTween.To(
                 () => displayedScore,

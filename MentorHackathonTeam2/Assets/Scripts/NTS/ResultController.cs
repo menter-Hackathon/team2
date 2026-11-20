@@ -12,7 +12,7 @@ public sealed class ResultController : MonoBehaviour
     private const string NicknameKey = "TitleSelect.Nickname";
 
     [Tooltip("集計対象とする各日程の識別名")]
-    private static readonly string[] DayNames = { "Day1", "Day2", "Day3", "Day4" };
+    private static readonly string[] DayNames = { "Day1", "Day2", "Day3" };
 
     [Header("遷移先")]
     [Tooltip("タイトルボタンを押した際に遷移するシーン名")]
@@ -78,7 +78,7 @@ public sealed class ResultController : MonoBehaviour
         _feedbackTween?.Kill();
     }
 
-    /// <summary>Day1〜Day4の最高精度を取得し、全日程の平均精度を算出する。</summary>
+    /// <summary>Day1〜Day3の最高精度を取得し、全日程の平均精度を算出する。</summary>
     private float CalculateAverageAccuracy()
     {
         float totalAccuracy = 0f;

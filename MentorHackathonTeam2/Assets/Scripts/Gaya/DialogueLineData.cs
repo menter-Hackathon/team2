@@ -22,4 +22,8 @@ public class DialogueLineData : ScriptableObject
     public float postDisplayWait = 2.0f;
     [Tooltip("消去後、次のセリフまでの待機時間（秒）")]
     public float nextLineWait = 0.5f;
+
+    [Header("音声（Day4用・任意）")]
+    [Tooltip("セリフ再生時に鳴らすボイスクリップ")]
+    public AudioClip voiceClip;
 }

@@ -24,7 +24,7 @@ public class GayaGameFlowManager : MonoBehaviour
     [SerializeField] private GayaSystem _gayaSystem;
     [Tooltip("スコア管理（任意）")]
     [SerializeField] private GayaScoreManager _gayaScoreManager;
-    [Tooltip("記録する Day 名。空欄の場合は現在のシーン名を使用（Day1～Day4）")]
+    [Tooltip("記録する Day 名。空欄の場合は現在のシーン名を使用（Day1～Day3）")]
     [SerializeField] private string _dayName;
 
     [Header("遊び方")]
@@ -37,9 +37,17 @@ public class GayaGameFlowManager : MonoBehaviour
     [Tooltip("ゲーム本編中のみ表示する UI 要素（セリフ枠・ゲージ・レティクルなど）")]
     [SerializeField] private List<GameObject> _gameplayUiElements = new List<GameObject>();
 
+    [Header("BGM")]
+    [Tooltip("遊び方画面のBGM（任意）")]
+    [SerializeField] private AudioClip _howToPlayBgm;
+    [Tooltip("ゲーム本編中のBGM（任意）")]
+    [SerializeField] private AudioClip _gameplayBgm;
+
     [Header("リザルト")]
     [Tooltip("リザルトパネルのルートオブジェクト")]
     [SerializeField] private GameObject _resultPanel;
+    [Tooltip("リザルト画面のBGM（任意）")]
+    [SerializeField] private AudioClip _resultBgm;
 
     [Header("評価画像")]
     [Tooltip("達成率が Great しきい値以上のときに表示するオブジェクト")]
@@ -146,6 +154,7 @@ public class GayaGameFlowManager : MonoBehaviour
     /// </summary>
     private void EnterHowToPlay()
     {
+        AudioManager.Instance?.PlayBgm(_howToPlayBgm);
         SetActiveSafe(_howToPlayPanel, true);
         SetGameplayUiActive(false);
         SetActiveSafe(_resultPanel, false);
@@ -162,6 +171,7 @@ public class GayaGameFlowManager : MonoBehaviour
     /// </summary>
     private void EnterPlaying()
     {
+        AudioManager.Instance?.PlayBgm(_gameplayBgm);
         if (_startButton != null)
         {
             _startButton.interactable = false;
@@ -183,6 +193,7 @@ public class GayaGameFlowManager : MonoBehaviour
     /// </summary>
     private void EnterResult()
     {
+        AudioManager.Instance?.PlayBgm(_resultBgm, loop: false);
         _gayaSystem.ClearSpeechBubbles();
         if (_gayaScoreManager != null)
         {

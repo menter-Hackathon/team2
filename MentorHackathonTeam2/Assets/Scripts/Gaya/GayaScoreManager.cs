@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using UnityEngine;
+using UnityEngine.VFX;
 
 /// <summary>
 /// <see cref="GayaSystem"/> のクリック結果を受けてスコアを加減算し、
@@ -31,7 +33,27 @@ public class GayaScoreManager : MonoBehaviour
     [Tooltip("非ガヤ（おてつき）時の減点（正の値で指定）")]
     [SerializeField] private int _missPenalty = 50;
 
+    [Header("効果音")]
+    [Tooltip("正解ガヤ時の効果音（任意）")]
+    [SerializeField] private AudioClip _correctSe;
+    [Tooltip("おてつき時の効果音（任意）")]
+    [SerializeField] private AudioClip _missSe;
+
+    [Header("回答時のVFX")]
+    [Tooltip("正解時のVFXアセット。Goodが追加されたらここだけ差し替える")]
+    [SerializeField] private VisualEffectAsset _correctVfx;
+    [Tooltip("不正解時のVFXアセット")]
+    [SerializeField] private VisualEffectAsset _missVfx;
+    [Tooltip("VFXを表示する秒数")]
+    [SerializeField, Min(0.01f)] private float _vfxDisplaySeconds = 2f;
+    [Tooltip("正解VFXの生成位置にする空のGameObject")]
+    [SerializeField] private Transform _correctVfxSpawnPoint;
+    [Tooltip("不正解VFXの生成位置にする空のGameObject")]
+    [SerializeField] private Transform _missVfxSpawnPoint;
+
     private int _score;
+    private VisualEffect _feedbackVfx;
+    private Coroutine _hideVfxCoroutine;
 
     /// <summary>現在のスコア。</summary>
     public int Score => _score;
@@ -55,6 +77,17 @@ public class GayaScoreManager : MonoBehaviour
         if (_gayaSystem != null)
         {
             _gayaSystem.OnWordClaimedAt -= HandleWordClaimed;
+        }
+
+        if (_hideVfxCoroutine != null)
+        {
+            StopCoroutine(_hideVfxCoroutine);
+            _hideVfxCoroutine = null;
+        }
+        if (_feedbackVfx != null)
+        {
+            Destroy(_feedbackVfx.gameObject);
+            _feedbackVfx = null;
         }
     }
 
@@ -102,6 +135,9 @@ public class GayaScoreManager : MonoBehaviour
     /// </summary>
     private void HandleWordClaimed(string targetId, string playerId, string phrase, bool isGayaWord, RectTransform spawnPoint)
     {
+        AudioManager.Instance?.PlaySe(isGayaWord ? _correctSe : _missSe, 1f, 0.05f);
+        PlayFeedbackVfx(isGayaWord);
+
         int requested = isGayaWord ? _gayaPoint : -Mathf.Abs(_missPenalty);
         int newScore = Mathf.Clamp(_score + requested, 0, _maxScore);
         int actualDelta = newScore - _score;
@@ -119,6 +155,48 @@ public class GayaScoreManager : MonoBehaviour
         {
             OnScoreChanged?.Invoke(_score, actualDelta);
         }
+    }
+
+    private void PlayFeedbackVfx(bool isCorrect)
+    {
+        VisualEffectAsset asset = isCorrect ? _correctVfx : _missVfx;
+        Transform spawnPoint = isCorrect ? _correctVfxSpawnPoint : _missVfxSpawnPoint;
+        if (asset == null || spawnPoint == null) return;
+
+        if (_hideVfxCoroutine != null)
+        {
+            StopCoroutine(_hideVfxCoroutine);
+            _hideVfxCoroutine = null;
+        }
+
+        if (_feedbackVfx == null)
+        {
+            GameObject effectObject = new GameObject("Answer Feedback VFX");
+            effectObject.SetActive(false);
+            _feedbackVfx = effectObject.AddComponent<VisualEffect>();
+        }
+
+        Transform effectTransform = _feedbackVfx.transform;
+        _feedbackVfx.gameObject.SetActive(false);
+        effectTransform.SetParent(spawnPoint, false);
+        effectTransform.localPosition = Vector3.zero;
+        effectTransform.localRotation = Quaternion.identity;
+        effectTransform.localScale = Vector3.one;
+        _feedbackVfx.visualEffectAsset = asset;
+        _feedbackVfx.gameObject.SetActive(true);
+        _feedbackVfx.Reinit();
+        _hideVfxCoroutine = StartCoroutine(HideFeedbackVfxAfterDelay());
+    }
+
+    private IEnumerator HideFeedbackVfxAfterDelay()
+    {
+        yield return new WaitForSecondsRealtime(_vfxDisplaySeconds);
+        if (_feedbackVfx != null)
+        {
+            _feedbackVfx.Stop();
+            _feedbackVfx.gameObject.SetActive(false);
+        }
+        _hideVfxCoroutine = null;
     }
 
     /// <summary>

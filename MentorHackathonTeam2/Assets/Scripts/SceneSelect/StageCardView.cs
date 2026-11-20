@@ -20,7 +20,9 @@ public sealed class StageCardView
     public void Render(StageCatalog.Stage stage, bool unlocked, bool selected, bool hasResult, float best, bool newUnlock)
     {
         nameText.text = stage.Name;
-        recordText.text = hasResult ? $"最高精度  {best:0.#}%" : "最高精度  --";
+        recordText.gameObject.SetActive(stage.Name != "Online");
+        if (stage.Name != "Online")
+            recordText.text = hasResult ? $"最高精度  {best:0.#}%" : "最高精度  --";
         stateText.text = unlocked ? (newUnlock ? "NEW" : "OPEN") : "LOCKED";
         stateText.color = unlocked ? new Color(0.16f, 0.37f, 0.32f) : new Color(0.45f, 0.47f, 0.53f);
         background.color = selected ? new Color(1f, 0.98f, 0.94f) : new Color(0.96f, 0.96f, 0.95f);

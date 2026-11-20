@@ -36,10 +36,11 @@ public sealed class SceneSelectController : MonoBehaviour
 
         for (int i = 0; i < _cards.Length; i++)
         {
-            if (_catalog.GetStage(i) == null || _catalog.GetStage(i).Name != $"Day{i + 1}"
+            string expectedName = i == 3 ? "Online" : $"Day{i + 1}";
+            if (_catalog.GetStage(i) == null || _catalog.GetStage(i).Name != expectedName
                 || _cards[i] == null || _cards[i].button == null)
             {
-                Debug.LogError($"[SceneSelectController] Day{i + 1} の設定またはカード参照が不正です。", this);
+                Debug.LogError($"[SceneSelectController] {expectedName} の設定またはカード参照が不正です。", this);
                 enabled = false;
                 return;
             }
@@ -103,9 +104,7 @@ public sealed class SceneSelectController : MonoBehaviour
         }
 
         StageCatalog.Stage previous = _catalog.GetStage(index - 1);
-        StageCatalog.Stage current = _catalog.GetStage(index);
-        return DataManager.Selection.TryGetBestAccuracy(previous.Name, out float best)
-            && best >= current.RequiredPreviousAccuracy;
+        return DataManager.Selection.TryGetBestAccuracy(previous.Name, out _);
     }
 
     private void SelectStage(int index)
@@ -120,7 +119,8 @@ public sealed class SceneSelectController : MonoBehaviour
         StageCardView card = _cards[index];
         bool unlocked = IsUnlocked(index);
         bool selected = index == _selectedIndex;
-        bool hasResult = DataManager.Selection.TryGetBestAccuracy(stage.Name, out float best);
+        float best = 0f;
+        bool hasResult = stage.Name != "Online" && DataManager.Selection.TryGetBestAccuracy(stage.Name, out best);
         bool newUnlock = index > 0 && unlocked && !DataManager.Selection.WasUnlockAnimationPlayed(stage.Name);
 
         card.Render(stage, unlocked, selected, hasResult, best, newUnlock);
@@ -130,15 +130,18 @@ public sealed class SceneSelectController : MonoBehaviour
     {
         StageCatalog.Stage stage = _catalog.GetStage(_selectedIndex);
         bool unlocked = IsUnlocked(_selectedIndex);
-        bool hasResult = DataManager.Selection.TryGetBestAccuracy(stage.Name, out float best);
+        float best = 0f;
+        bool hasResult = stage.Name != "Online" && DataManager.Selection.TryGetBestAccuracy(stage.Name, out best);
 
         _detailAccent.color = unlocked ? stage.MainColor : new Color(0.67f, 0.69f, 0.72f);
         _detailNameText.text = stage.Name;
         _detailDescriptionText.text = stage.Description;
-        _detailRecordText.text = hasResult ? $"最高精度  {best:0.#}%" : "最高精度  --";
+        _detailRecordText.gameObject.SetActive(stage.Name != "Online");
+        if (stage.Name != "Online")
+            _detailRecordText.text = hasResult ? $"最高精度  {best:0.#}%" : "最高精度  --";
         _detailStateText.text = unlocked
             ? "このステージをプレイできます"
-            : $"{_catalog.GetStage(_selectedIndex - 1).Name} の最高精度 {stage.RequiredPreviousAccuracy:0.#}% 以上で解放";
+            : $"{_catalog.GetStage(_selectedIndex - 1).Name} クリアで解放";
         _startButton.interactable = unlocked;
         _startButton.image.color = unlocked
             ? new Color(0.15f, 0.20f, 0.27f)
@@ -156,7 +159,7 @@ public sealed class SceneSelectController : MonoBehaviour
         LoadScene(_catalog.GetStage(_selectedIndex).SceneName);
     }
 
-    private void ReturnToTitle() => LoadScene("Title");
+    private void ReturnToTitle() => LoadScene("TitleSelect");
 
     private void LoadScene(string sceneName)
     {

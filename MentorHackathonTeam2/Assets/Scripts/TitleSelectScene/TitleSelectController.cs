@@ -6,20 +6,22 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-/// <summary>タイトルとA4上のDay1～4を、Cinemachineで行き来する。</summary>
+/// <summary>タイトルとDay1～3・Onlineを、Cinemachineで行き来する。</summary>
 public sealed class TitleSelectController : MonoBehaviour
 {
     private const string NicknameKey = "TitleSelect.Nickname";
     private const int MaxNicknameLength = 16;
     private const float ContinueSlideDistance = 1400f;
-    private const float TitleSlideDistance = 1200f;
+    private static readonly Vector2 TitleSlideOffset = new Vector2(-2100f, -160f);
+    private static readonly Vector2 ArtworkEntranceOffset = new Vector2(-540f, -140f);
+    private const float ArtworkEntranceDuration = 0.6f;
     private const float NavigationSlideDistance = 220f;
 
     [Header("進行データ")]
     [SerializeField] private StageCatalog _catalog;
     [SerializeField] private DaySectionView[] _daySections;
 
-    [Header("カメラ: 0=タイトル、1～4=Day1～4")]
+    [Header("カメラ: 0=タイトル、1～3=Day1～3、4=Online")]
     [SerializeField] private CinemachineBrain _brain;
     [SerializeField] private CinemachineCamera[] _cameras;
 
@@ -36,6 +38,8 @@ public sealed class TitleSelectController : MonoBehaviour
 
     [Header("タイトル")]
     [SerializeField] private GameObject _titleHud;
+    [Tooltip("ロゴと影をまとめたTitle Block")]
+    [SerializeField] private RectTransform _titleArtworkGroupRect;
     [SerializeField] private TMP_InputField _nicknameInput;
     [SerializeField] private Button _continueButton;
 
@@ -45,6 +49,10 @@ public sealed class TitleSelectController : MonoBehaviour
     [SerializeField] private TMP_Text _upButtonText;
     [SerializeField] private Button _downButton;
     [SerializeField] private TMP_Text _downButtonText;
+    
+    [Header("タイトルBGM")]
+    [Tooltip("タイトルBGM（任意）")]
+    [SerializeField] private AudioClip _titleBgm;
 
     private int _currentDay = -1;
     private bool _moving;
@@ -53,6 +61,7 @@ public sealed class TitleSelectController : MonoBehaviour
     private RectTransform _upRect;
     private RectTransform _downRect;
     private Vector2 _titleHome;
+    private Vector2 _titleArtworkGroupHome;
     private Vector2 _continueHome;
     private Vector2 _upHome;
     private Vector2 _downHome;
@@ -71,6 +80,7 @@ public sealed class TitleSelectController : MonoBehaviour
         _nicknameInput.readOnly = false;
         _nicknameInput.interactable = true;
         _titleRect = (RectTransform)_titleHud.transform;
+        _titleArtworkGroupHome = _titleArtworkGroupRect.anchoredPosition;
         _continueRect = (RectTransform)_continueButton.transform;
         _upRect = (RectTransform)_upButton.transform;
         _downRect = (RectTransform)_downButton.transform;
@@ -102,6 +112,10 @@ public sealed class TitleSelectController : MonoBehaviour
         _continueButton.gameObject.SetActive(true);
         _navigationHud.SetActive(false);
         UpdateContinueButton();
+        _titleArtworkGroupRect.anchoredPosition = _titleArtworkGroupHome + ArtworkEntranceOffset;
+        _titleArtworkGroupRect.DOAnchorPos(_titleArtworkGroupHome, ArtworkEntranceDuration)
+            .SetEase(Ease.OutCubic).SetUpdate(true);
+        AudioManager.Instance.PlayBgm(_titleBgm);
     }
 
     private void OnDestroy()
@@ -115,6 +129,7 @@ public sealed class TitleSelectController : MonoBehaviour
         if (_upButton != null) _upButton.onClick.RemoveListener(MoveUp);
         if (_downButton != null) _downButton.onClick.RemoveListener(MoveDown);
         if (_titleRect != null) _titleRect.DOKill();
+        if (_titleArtworkGroupRect != null) _titleArtworkGroupRect.DOKill();
         if (_continueRect != null) _continueRect.DOKill();
         if (_upRect != null) _upRect.DOKill();
         if (_downRect != null) _downRect.DOKill();
@@ -124,6 +139,7 @@ public sealed class TitleSelectController : MonoBehaviour
     {
         if (_catalog == null || _catalog.Count != 4 || _daySections == null || _daySections.Length != 4
             || _brain == null || _cameras == null || _cameras.Length != 5 || _titleHud == null
+            || _titleArtworkGroupRect == null
             || _nicknameInput == null || _continueButton == null || _navigationHud == null
             || _upButton == null || _upButtonText == null || _downButton == null || _downButtonText == null)
             return false;
@@ -132,8 +148,8 @@ public sealed class TitleSelectController : MonoBehaviour
             if (_cameras[i] == null) return false;
 
         for (int i = 0; i < 4; i++)
-            if (_daySections[i] == null || !_daySections[i].HasRequiredReferences(i > 0)
-                || _catalog.GetStage(i) == null || _catalog.GetStage(i).Name != $"Day{i + 1}")
+            if (_daySections[i] == null || !_daySections[i].HasRequiredReferences()
+                || _catalog.GetStage(i) == null || _catalog.GetStage(i).Name != StageName(i))
                 return false;
 
         if (!HasButtonStyle(_continueButton) || !HasButtonStyle(_upButton)
@@ -212,7 +228,7 @@ public sealed class TitleSelectController : MonoBehaviour
         Sequence exit = DOTween.Sequence().SetUpdate(true);
         if (previousDay < 0)
         {
-            exit.Join(_titleRect.DOAnchorPosY(_titleHome.y + TitleSlideDistance, _uiSlideDuration)
+            exit.Join(_titleRect.DOAnchorPos(_titleHome + TitleSlideOffset, _uiSlideDuration)
                 .SetEase(Ease.InCubic));
             exit.Join(_continueRect.DOAnchorPosX(_continueHome.x + ContinueSlideDistance, _uiSlideDuration)
                 .SetEase(Ease.InCubic));
@@ -253,7 +269,7 @@ public sealed class TitleSelectController : MonoBehaviour
         Sequence enter = DOTween.Sequence().SetUpdate(true);
         if (targetDay < 0)
         {
-            _titleRect.anchoredPosition = _titleHome + Vector2.up * TitleSlideDistance;
+            _titleRect.anchoredPosition = _titleHome + TitleSlideOffset;
             _continueRect.anchoredPosition = _continueHome + Vector2.right * ContinueSlideDistance;
             _titleHud.SetActive(true);
             _continueButton.gameObject.SetActive(true);
@@ -269,7 +285,7 @@ public sealed class TitleSelectController : MonoBehaviour
             _downButton.gameObject.SetActive(targetDay < 3);
             if (targetDay < 3)
             {
-                _downButtonText.text = $"↓ Day{targetDay + 2}へ";
+                _downButtonText.text = $"↓ {StageName(targetDay + 1)}へ";
                 DayButtonStyle.Apply(_downButton, _downButtonText,
                     _catalog.GetStage(targetDay + 1).MainColor);
             }
@@ -302,20 +318,20 @@ public sealed class TitleSelectController : MonoBehaviour
     {
         if (index == 0) return true;
         StageCatalog.Stage previous = _catalog.GetStage(index - 1);
-        StageCatalog.Stage current = _catalog.GetStage(index);
-        return DataManager.Selection.TryGetBestAccuracy(previous.Name, out float best)
-            && best >= current.RequiredPreviousAccuracy;
+        return DataManager.Selection.TryGetBestAccuracy(previous.Name, out _);
     }
 
     private void RenderDay(int index)
     {
         StageCatalog.Stage stage = _catalog.GetStage(index);
-        bool hasResult = DataManager.Selection.TryGetBestAccuracy(stage.Name, out float best);
+        float best = 0f;
+        bool hasResult = index < 3 && DataManager.Selection.TryGetBestAccuracy(stage.Name, out best);
         // 未プレイ時は仮の中間アイコンを薄く表示する。
         Sprite moodIcon = hasResult ? GetMoodIcon(best) : _mood70To90;
-        Sprite requiredMoodIcon = index == 0 ? null : GetMoodIcon(stage.RequiredPreviousAccuracy);
-        _daySections[index].Render(stage, IsUnlocked(index), moodIcon, hasResult, requiredMoodIcon);
+        _daySections[index].Render(stage, IsUnlocked(index), moodIcon, hasResult);
     }
+
+    private static string StageName(int index) => index == 3 ? "Online" : $"Day{index + 1}";
 
     private Sprite GetMoodIcon(float accuracyPercent)
     {
