@@ -5,6 +5,7 @@ using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Photon.Pun;
@@ -53,10 +54,16 @@ public class mmm_GayaSystem : MonoBehaviourPun
     [SerializeField] private bool _allowOverlapWhenFull = false;
 
     [Header("表示色")]
-    [Tooltip("回答済み（ガヤ成功）単語の表示色")]
-    [SerializeField] private Color _claimedColor = new Color32(0xFF, 0x3B, 0x30, 0xFF);
-    [Tooltip("おてつき（非ガヤワード）をクリックした単語の表示色")]
-    [SerializeField] private Color _opponentClaimColor = Color.gray;
+    [Tooltip("自分が正解をクリックした単語の色")]
+    [FormerlySerializedAs("_claimedColor")]
+    [SerializeField] private Color _localCorrectColor = new Color32(0xFF, 0x3B, 0x30, 0xFF);
+    [Tooltip("自分が不正解をクリックした単語の色")]
+    [SerializeField] private Color _localMissColor = new Color32(0x00, 0x7A, 0xFF, 0xFF);
+    [Tooltip("相手だけが正解をクリックした単語の色")]
+    [FormerlySerializedAs("_opponentClaimColor")]
+    [SerializeField] private Color _opponentCorrectColor = new Color32(0xFF, 0xAA, 0xAA, 0xFF);
+    [Tooltip("相手だけが不正解をクリックした単語の色")]
+    [SerializeField] private Color _opponentMissColor = new Color32(0xAA, 0xCC, 0xFF, 0xFF);
 
     [Header("おてつき")]
     [Tooltip("非ガヤワードをクリックした際の吹き出しテキストのフォーマット（{0} にクリックした単語が入る）")]
@@ -72,11 +79,13 @@ public class mmm_GayaSystem : MonoBehaviourPun
     private sealed class ClaimRecord
     {
         public readonly int FirstActorNumber;
+        public readonly bool IsGayaWord;
         public int SecondActorNumber;
 
-        public ClaimRecord(int firstActorNumber)
+        public ClaimRecord(int firstActorNumber, bool isGayaWord)
         {
             FirstActorNumber = firstActorNumber;
+            IsGayaWord = isGayaWord;
         }
     }
 
@@ -295,14 +304,14 @@ public class mmm_GayaSystem : MonoBehaviourPun
         if (claimOrder == 1)
         {
             if (record != null) return;
-            record = new ClaimRecord(firstActorNumber);
+            record = new ClaimRecord(firstActorNumber, isGayaWord);
             claims[targetId] = record;
         }
         else if (claimOrder == 2)
         {
             if (record == null)
             {
-                record = new ClaimRecord(firstActorNumber);
+                record = new ClaimRecord(firstActorNumber, isGayaWord);
                 claims[targetId] = record;
             }
             if (record.SecondActorNumber != 0) return;
@@ -755,7 +764,7 @@ public class mmm_GayaSystem : MonoBehaviourPun
     }
 
     /// <summary>
-    /// 自分が取得済みなら赤、相手だけが取得済みなら灰色でリンクを描画する。
+    /// 自分のクリック結果を優先し、正解・不正解とプレイヤー別の色でリンクを描画する。
     /// </summary>
     private void ApplyClaimedColors()
     {
@@ -772,8 +781,6 @@ public class mmm_GayaSystem : MonoBehaviourPun
 
         int localActorNumber = PhotonNetwork.LocalPlayer != null
             ? PhotonNetwork.LocalPlayer.ActorNumber : 0;
-        Color32 localColor = _claimedColor;
-        Color32 opponentColor = _opponentClaimColor;
         bool isModified = false;
 
         for (int i = 0; i < textInfo.linkCount; i++)
@@ -783,9 +790,12 @@ public class mmm_GayaSystem : MonoBehaviourPun
             {
                 continue;
             }
-            Color32 color = record.FirstActorNumber == localActorNumber ||
-                            record.SecondActorNumber == localActorNumber
-                ? localColor : opponentColor;
+            // 相手が後からクリックしても、自分がクリック済みなら自分の色を維持する。
+            bool claimedByLocal = record.FirstActorNumber == localActorNumber ||
+                                  record.SecondActorNumber == localActorNumber;
+            Color32 color = claimedByLocal
+                ? (record.IsGayaWord ? (Color32)_localCorrectColor : (Color32)_localMissColor)
+                : (record.IsGayaWord ? (Color32)_opponentCorrectColor : (Color32)_opponentMissColor);
 
             int start = link.linkTextfirstCharacterIndex;
             int end = Mathf.Min(start + link.linkTextLength, textInfo.characterCount);
