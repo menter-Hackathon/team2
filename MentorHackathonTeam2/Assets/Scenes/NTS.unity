@@ -414,7 +414,7 @@ GameObject:
   - component: {fileID: 468068338}
   - component: {fileID: 468068337}
   m_Layer: 5
-  m_Name: Settings Button
+  m_Name: TitleButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -587,7 +587,7 @@ MonoBehaviour:
   _eval0To40: "3\u65E5\u9593\u304A\u75B2\u308C\u69D8\uFF01\u30E1\u30F3\u30D0\u30FC\u306B\u6210\u529F\u4F53\u9A13\u3092\u5C4A\u3051\u308B\u3069\u3053\u308D\u304B\u3001\u81EA\u5206\u81EA\u8EAB\u304C\u5927\u304D\u306A\u8AB2\u984C\u3092\u6301\u3061\u5E30\u308B\u7D50\u679C\u306B\u2026\u2026\u3002\u3053\u306E\u7D4C\u9A13\u3001\u7121\u99C4\u306B\u306F\u3057\u306A\u3044\u3067\u304F\u3060\u3055\u3044\u306D\uFF01\uFF01"
   _nameText: {fileID: 1726585211}
   _feedbackText: {fileID: 1576750435}
-  _titleButton: {fileID: 0}
+  _titleButton: {fileID: 468068339}
   _charInterval: 0.1
 --- !u!4 &561537811
 Transform:
