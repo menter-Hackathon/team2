@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -69,6 +70,8 @@ public class mmm_GayaGameFlowManager : MonoBehaviourPun
     private bool _isOpponentReady = false;
 
     private bool _isGameStarted = false;
+    private TMP_Text _startButtonLabel;
+    private string _startButtonOriginalText;
 
     /// <summary>現在の進行状態。</summary>
     public FlowState State => _state;
@@ -78,6 +81,13 @@ public class mmm_GayaGameFlowManager : MonoBehaviourPun
 
     private void Awake()
     {
+        if (_startButton != null)
+        {
+            _startButtonLabel = _startButton.GetComponentInChildren<TMP_Text>(true);
+            if (_startButtonLabel != null)
+                _startButtonOriginalText = _startButtonLabel.text;
+        }
+
         // mmm_GayaSystem.Start より前に実行されるため、自動再生・ループをここで確実に止める
         if (_gayaSystem != null)
         {
@@ -123,6 +133,9 @@ public class mmm_GayaGameFlowManager : MonoBehaviourPun
         
         Debug.Log("自分がボタンを押しました");
         _isMyReady = true;
+        if (_startButtonLabel != null)
+            _startButtonLabel.text = "準備完了";
+        _startButton.interactable = false;
         CheckReady();
 
         // 相手にもログを送る
@@ -219,6 +232,8 @@ public class mmm_GayaGameFlowManager : MonoBehaviourPun
         {
             _startButton.interactable = true;
         }
+        if (_startButtonLabel != null)
+            _startButtonLabel.text = _startButtonOriginalText;
         ChangeState(FlowState.HowToPlay);
     }
 

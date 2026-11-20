@@ -46,8 +46,10 @@ public class GayaScoreManager : MonoBehaviour
     [SerializeField] private VisualEffectAsset _missVfx;
     [Tooltip("VFXを表示する秒数")]
     [SerializeField, Min(0.01f)] private float _vfxDisplaySeconds = 2f;
-    [Tooltip("VFXの生成位置にする空のGameObject")]
-    [SerializeField] private Transform _vfxSpawnPoint;
+    [Tooltip("正解VFXの生成位置にする空のGameObject")]
+    [SerializeField] private Transform _correctVfxSpawnPoint;
+    [Tooltip("不正解VFXの生成位置にする空のGameObject")]
+    [SerializeField] private Transform _missVfxSpawnPoint;
 
     private int _score;
     private VisualEffect _feedbackVfx;
@@ -158,7 +160,8 @@ public class GayaScoreManager : MonoBehaviour
     private void PlayFeedbackVfx(bool isCorrect)
     {
         VisualEffectAsset asset = isCorrect ? _correctVfx : _missVfx;
-        if (asset == null || _vfxSpawnPoint == null) return;
+        Transform spawnPoint = isCorrect ? _correctVfxSpawnPoint : _missVfxSpawnPoint;
+        if (asset == null || spawnPoint == null) return;
 
         if (_hideVfxCoroutine != null)
         {
@@ -175,7 +178,7 @@ public class GayaScoreManager : MonoBehaviour
 
         Transform effectTransform = _feedbackVfx.transform;
         _feedbackVfx.gameObject.SetActive(false);
-        effectTransform.SetParent(_vfxSpawnPoint, false);
+        effectTransform.SetParent(spawnPoint, false);
         effectTransform.localPosition = Vector3.zero;
         effectTransform.localRotation = Quaternion.identity;
         effectTransform.localScale = Vector3.one;
