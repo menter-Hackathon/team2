@@ -454,6 +454,7 @@ GameObject:
   - component: {fileID: 127601019}
   - component: {fileID: 127601021}
   - component: {fileID: 2100100004}
+  - component: {fileID: 2100100005}
   m_Layer: 0
   m_Name: Down Button
   m_TagString: Untagged
@@ -2488,6 +2489,7 @@ GameObject:
   - component: {fileID: 722866470}
   - component: {fileID: 722866472}
   - component: {fileID: 2100100014}
+  - component: {fileID: 2100100015}
   m_Layer: 0
   m_Name: Up Button
   m_TagString: Untagged
@@ -2965,6 +2967,7 @@ GameObject:
   - component: {fileID: 950391376}
   - component: {fileID: 950391375}
   - component: {fileID: 2100100024}
+  - component: {fileID: 2100100025}
   m_Layer: 0
   m_Name: Start Button
   m_TagString: Untagged
@@ -3456,6 +3459,7 @@ GameObject:
   - component: {fileID: 1054936932}
   - component: {fileID: 1054936931}
   - component: {fileID: 2100100034}
+  - component: {fileID: 2100100035}
   m_Layer: 0
   m_Name: Start Button
   m_TagString: Untagged
@@ -3579,6 +3583,7 @@ GameObject:
   - component: {fileID: 1168677354}
   - component: {fileID: 1168677353}
   - component: {fileID: 2100100044}
+  - component: {fileID: 2100100045}
   m_Layer: 0
   m_Name: Start Button
   m_TagString: Untagged
@@ -5551,6 +5556,7 @@ GameObject:
   - component: {fileID: 1604896023}
   - component: {fileID: 1604896022}
   - component: {fileID: 2100100054}
+  - component: {fileID: 2100100055}
   m_Layer: 5
   m_Name: Settings Button
   m_TagString: Untagged
@@ -6303,6 +6309,7 @@ GameObject:
   - component: {fileID: 1692512651}
   - component: {fileID: 1692512650}
   - component: {fileID: 2100100064}
+  - component: {fileID: 2100100065}
   m_Layer: 0
   m_Name: Start Button
   m_TagString: Untagged
@@ -8054,6 +8061,7 @@ GameObject:
   - component: {fileID: 2062197678}
   - component: {fileID: 2062197677}
   - component: {fileID: 2100100074}
+  - component: {fileID: 2100100075}
   m_Layer: 0
   m_Name: Continue Button
   m_TagString: Untagged
@@ -9326,6 +9334,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DayButtonStyle
   _border: {fileID: 127601019}
   _fill: {fileID: 2100100002}
+--- !u!114 &2100100005
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 127601017}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19d95d182c14e00a6def4a13b6a29c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonSoundPlayer
+  _clickSe: {fileID: 8300000, guid: e8585f3e308604e5297baa2a6d195f67, type: 3}
+  _volumeScale: 1
 --- !u!1 &2100100010
 GameObject:
   m_ObjectHideFlags: 0
@@ -9415,6 +9437,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DayButtonStyle
   _border: {fileID: 722866470}
   _fill: {fileID: 2100100012}
+--- !u!114 &2100100015
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 722866468}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19d95d182c14e00a6def4a13b6a29c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonSoundPlayer
+  _clickSe: {fileID: 8300000, guid: e8585f3e308604e5297baa2a6d195f67, type: 3}
+  _volumeScale: 1
 --- !u!1 &2100100020
 GameObject:
   m_ObjectHideFlags: 0
@@ -9504,6 +9540,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DayButtonStyle
   _border: {fileID: 950391376}
   _fill: {fileID: 2100100022}
+--- !u!114 &2100100025
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 950391373}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19d95d182c14e00a6def4a13b6a29c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonSoundPlayer
+  _clickSe: {fileID: 8300000, guid: e8585f3e308604e5297baa2a6d195f67, type: 3}
+  _volumeScale: 1
 --- !u!1 &2100100030
 GameObject:
   m_ObjectHideFlags: 0
@@ -9593,6 +9643,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DayButtonStyle
   _border: {fileID: 1054936932}
   _fill: {fileID: 2100100032}
+--- !u!114 &2100100035
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1054936929}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19d95d182c14e00a6def4a13b6a29c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonSoundPlayer
+  _clickSe: {fileID: 8300000, guid: e8585f3e308604e5297baa2a6d195f67, type: 3}
+  _volumeScale: 1
 --- !u!1 &2100100040
 GameObject:
   m_ObjectHideFlags: 0
@@ -9682,6 +9746,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DayButtonStyle
   _border: {fileID: 1168677354}
   _fill: {fileID: 2100100042}
+--- !u!114 &2100100045
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1168677351}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19d95d182c14e00a6def4a13b6a29c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonSoundPlayer
+  _clickSe: {fileID: 8300000, guid: e8585f3e308604e5297baa2a6d195f67, type: 3}
+  _volumeScale: 1
 --- !u!1 &2100100050
 GameObject:
   m_ObjectHideFlags: 0
@@ -9771,6 +9849,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DayButtonStyle
   _border: {fileID: 1604896023}
   _fill: {fileID: 2100100052}
+--- !u!114 &2100100055
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1604896021}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19d95d182c14e00a6def4a13b6a29c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonSoundPlayer
+  _clickSe: {fileID: 8300000, guid: e8585f3e308604e5297baa2a6d195f67, type: 3}
+  _volumeScale: 1
 --- !u!1 &2100100060
 GameObject:
   m_ObjectHideFlags: 0
@@ -9860,6 +9952,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DayButtonStyle
   _border: {fileID: 1692512651}
   _fill: {fileID: 2100100062}
+--- !u!114 &2100100065
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1692512648}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19d95d182c14e00a6def4a13b6a29c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonSoundPlayer
+  _clickSe: {fileID: 8300000, guid: e8585f3e308604e5297baa2a6d195f67, type: 3}
+  _volumeScale: 1
 --- !u!1 &2100100070
 GameObject:
   m_ObjectHideFlags: 0
@@ -9949,6 +10055,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DayButtonStyle
   _border: {fileID: 2062197678}
   _fill: {fileID: 2100100072}
+--- !u!114 &2100100075
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2062197676}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19d95d182c14e00a6def4a13b6a29c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonSoundPlayer
+  _clickSe: {fileID: 8300000, guid: e8585f3e308604e5297baa2a6d195f67, type: 3}
+  _volumeScale: 1
 --- !u!1 &2100400001
 GameObject:
   m_ObjectHideFlags: 0
@@ -10010,6 +10130,7 @@ GameObject:
   - component: {fileID: 2103208032}
   - component: {fileID: 2103208031}
   - component: {fileID: 2103208030}
+  - component: {fileID: 2103208033}
   m_Layer: 5
   m_Name: Close Button
   m_TagString: Untagged
@@ -10119,6 +10240,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2103208028}
   m_CullTransparentMesh: 1
+--- !u!114 &2103208033
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2103208028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19d95d182c14e00a6def4a13b6a29c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonSoundPlayer
+  _clickSe: {fileID: 8300000, guid: e8585f3e308604e5297baa2a6d195f67, type: 3}
+  _volumeScale: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
