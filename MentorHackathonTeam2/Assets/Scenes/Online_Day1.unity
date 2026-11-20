@@ -17160,8 +17160,10 @@ MonoBehaviour:
   - {fileID: 416932257}
   - {fileID: 1505562119}
   _allowOverlapWhenFull: 0
-  _claimedColor: {r: 1, g: 0, b: 0, a: 1}
-  _opponentClaimColor: {r: 0.6, g: 0.6, b: 0.6, a: 1}
+  _localCorrectColor: {r: 1, g: 0, b: 0, a: 1}
+  _localMissColor: {r: 0, g: 0.47843137, b: 1, a: 1}
+  _opponentCorrectColor: {r: 1, g: 0.6666667, b: 0.6666667, a: 1}
+  _opponentMissColor: {r: 0.6666667, g: 0.8, b: 1, a: 1}
   _missBubbleFormat: "{0}\uFF01\uFF1F"
 --- !u!114 &995631197
 MonoBehaviour:
@@ -36492,7 +36494,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u2014"
+  m_text: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: d6d217ee9decf7e418819471eb34fc89, type: 2}
   m_sharedMaterial: {fileID: 2445629588642555089, guid: d6d217ee9decf7e418819471eb34fc89, type: 2}
