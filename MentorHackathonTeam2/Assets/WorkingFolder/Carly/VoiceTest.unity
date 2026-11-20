@@ -354,6 +354,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RunWhisper
   latestVolume: 0
   voiceThreshold: 0.04
+  minSpeechDuration: 0.15
   silenceDuration: 0.7
   targetKeywords:
   - "\u304A\u306F\u3088\u3046"

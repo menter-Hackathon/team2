@@ -9111,7 +9111,7 @@ MonoBehaviour:
   micOn: {fileID: 1744753481}
   micMute: {fileID: 2117267164}
   voiceThreshold: 0.08
-  minSpeechVolume: 0.008
+  minSpeechDuration: 0.15
   silenceDuration: 0.7
   targetKeywords:
   - "\u304A\u306F\u3088\u3046"

@@ -33,7 +33,7 @@ public class RunWhisper : MonoBehaviour
     // Maximum size of audioClip (30s at 16kHz)
     const int maxSamples = 30 * 16000;
 
-    public float latestVolume = 0f; // しゃべり終わったときの平均音量
+    public float latestVolume = 0f; // 発話中に観測したピーク音量の平均
 
     [Header("マイクUI設定")]
     public GameObject micOn; 
@@ -41,7 +41,7 @@ public class RunWhisper : MonoBehaviour
 
     [Header("マイク＆キーワード設定")]
     public float voiceThreshold = 0.04f;  // 話し始めとみなす音量
-    public float minSpeechVolume = 0.008f; //音量のしきい値
+    [Min(0f)] public float minSpeechDuration = 0.15f; // しきい値を超えた時間の合計
     public float silenceDuration = 0.7f; // 話し終わりとみなす無音秒数
     public string[] targetKeywords = new string[] { "おはよう", "オハヨウ" }; //キーワード
 
@@ -53,6 +53,9 @@ public class RunWhisper : MonoBehaviour
     bool isInferencing = false;
     int speechStartPos = 0;
     float silenceTimer = 0f;
+    float loudDuration = 0f;
+    float loudVolumeSum = 0f;
+    int loudFrameCount = 0;
 
     public ModelAsset audioDecoder1, audioDecoder2;
     public ModelAsset audioEncoder;
@@ -103,6 +106,7 @@ public class RunWhisper : MonoBehaviour
             micDevice = Microphone.devices[0];
             micClip = Microphone.Start(micDevice, true, 30, sampleRate);
             isSpeaking = false;
+            loudDuration = 0f;
             SetMicUI(false);
             Debug.Log($"<color=yellow>マイクを切り替えました: {micDevice}</color>");
             return;
@@ -122,6 +126,9 @@ public class RunWhisper : MonoBehaviour
                 isSpeaking = true;
                 SetMicUI(true);
                 silenceTimer = 0f;
+                loudDuration = Time.deltaTime;
+                loudVolumeSum = currentVolume;
+                loudFrameCount = 1;
                 int preBuffer = (int)(sampleRate * 0.2f);
                 speechStartPos = (currentPos - preBuffer + micClip.samples) % micClip.samples;
                 Debug.Log("音声聞き取り中");
@@ -136,34 +143,19 @@ public class RunWhisper : MonoBehaviour
                 {
                     isSpeaking = false;
                     SetMicUI(false);
-                    float[] audioData = ExtractMicAudio(speechStartPos, currentPos); //音声データを切り出す
-                    
-                    // 平均音量の計算
-                    int length = (currentPos - speechStartPos + micClip.samples) % micClip.samples;
-                    float activeSum = 0f;
-                    int activeCount = 0;
-                    float totalSum = 0f;
-                    for (int i = 0; i < length; i++)
+                    latestVolume = loudFrameCount > 0 ? loudVolumeSum / loudFrameCount : 0f;
+                    if (loudDuration < minSpeechDuration)
                     {
-                        float abs = Mathf.Abs(audioData[i]);
-                        totalSum += abs;
-
-                        if (abs > voiceThreshold * 0.5f) //話している部分だけを平均音調に反映
-                        {
-                            activeSum += abs;
-                            activeCount++;
-                        }
-                    }
-                    
-                    float overallAvg = (length > 0) ? (totalSum / length) : 0f;
-                    latestVolume = (activeCount > 0) ? (activeSum / activeCount) : 0f;
-
-                    // ノイズの判断
-                    if (overallAvg < minSpeechVolume || activeCount < sampleRate * 0.15f)
-                    {
-                        Debug.Log($"<color=gray>ノイズ処理 (全体平均: {overallAvg:F4})</color>");
+                        Debug.Log($"<color=gray>ノイズ処理 (しきい値超過: {loudDuration:F3}秒)</color>");
                         return;
                     }
+
+                    int length = (currentPos - speechStartPos + micClip.samples) % micClip.samples;
+                    if (length == 0) return;
+
+                    float[] audioData = ExtractMicAudio(speechStartPos, currentPos); // 音声データを切り出す
+                    int validSamples = Mathf.Min(length, audioData.Length);
+                    Debug.Log($"しきい値超過: {loudDuration:F3}秒 / 録音区間: {(float)validSamples / micClip.frequency:F3}秒 / 平均ピーク音量: {latestVolume:F4}");
 
                     _ = RunWhisperAsync(audioData);
                 }
@@ -171,6 +163,9 @@ public class RunWhisper : MonoBehaviour
             else
             {
                 silenceTimer = 0f;
+                loudDuration += Time.deltaTime;
+                loudVolumeSum += currentVolume;
+                loudFrameCount++;
             }
         }
     }
@@ -231,7 +226,7 @@ public class RunWhisper : MonoBehaviour
         isInferencing = true;
         var outputTokens = new NativeArray<int>(maxTokens, Allocator.Persistent);
         var lastToken = new NativeArray<int>(1, Allocator.Persistent);
-
+        Debug.Log($"処理開始");
 
         try
         {
