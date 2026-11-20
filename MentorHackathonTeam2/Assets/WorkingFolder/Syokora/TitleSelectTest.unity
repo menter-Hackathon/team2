@@ -239,10 +239,10 @@ MonoBehaviour:
   _uiSlideDuration: 0.25
   _cameraStartDelay: 0.1
   _cameraBlendDuration: 0.65
-  _mood90To100: {fileID: 21300000, guid: faeefafd9d5544196b33de717e309542, type: 3}
-  _mood70To90: {fileID: 21300000, guid: faeefafd9d5544196b33de717e309542, type: 3}
-  _mood40To70: {fileID: 21300000, guid: faeefafd9d5544196b33de717e309542, type: 3}
-  _mood0To40: {fileID: 21300000, guid: faeefafd9d5544196b33de717e309542, type: 3}
+  _mood90To100: {fileID: 21300000, guid: 5af4b96338c854053a2b6c343fb37799, type: 3}
+  _mood70To90: {fileID: 21300000, guid: c4818e1acecdb4372b6b3a0fb0ed3bea, type: 3}
+  _mood40To70: {fileID: 21300000, guid: afc6b228cf25144babd50dd7e9fae26a, type: 3}
+  _mood0To40: {fileID: 21300000, guid: dbcf9be9f72494f5b9e7e49ab1191ad7, type: 3}
   _titleHud: {fileID: 1837918890}
   _nicknameInput: {fileID: 582917250}
   _continueButton: {fileID: 2062197677}

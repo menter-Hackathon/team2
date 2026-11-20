@@ -12,6 +12,8 @@ public class DialogueLineData : ScriptableObject
     [TextArea] public string markedUpText;
     [Tooltip("このセリフに含まれるガヤ候補一覧（targetId を link タグと一致させる）")]
     public List<GayaTargetData> targets = new List<GayaTargetData>();
+    [Tooltip("再生中にスキップボタンで次のセリフへ進めるか")]
+    public bool isSkippable;
 
     [Header("タイミング（秒）")]
     [Tooltip("1文字あたりの表示間隔（秒）")]

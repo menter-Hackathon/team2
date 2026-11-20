@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b108919bd54c419d9445d1f246dbe76, type: 3}
+  m_Name: CodeLine1
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueLineData
+  markedUpText: '<link="1"><color=#C586C0>using</color> <color=#4EC9B0>UnityEngine</color>;</link>
+
+    <link="2"></link>
+
+    <link="3"><color=#9CDCFE>public
+    class</color> <color=#4EC9B0>NewMonoBehaviourScript</color> : <color=#4EC9B0>MonoBehaviour</color></link>
+
+    <link="4">{</link>
+
+    <link="5">   
+    <color=#9CDCFE>public</color> <color=#4EC9B0>float</color> <color=#9CDCFE>speed</color>
+    = <color=#B5CEA8>5.0f</color>;</link>
+
+    <link="6">    <color=#9CDCFE>public</color>
+    <color=#4EC9B0>float</color> <color=#9CDCFE>slideSpeed</color> = <color=#B5CEA8>2.0f</color>;</link>
+
+    <link="7"></link>
+
+    <link="8">   
+    <color=#4EC9B0>Animator</color> <color=#9CDCFE>animator</color>;</link>
+
+    <link="9">   
+    <color=#4EC9B0>UIManager</color> <color=#9CDCFE>uiManager</color>;</link>
+
+    <link="10">   
+    <color=#4EC9B0>GameObject</color> <color=#9CDCFE>headcollider</color>;</link>
+
+    <link="11">   
+    <color=#4EC9B0>Rigidbody</color> <color=#9CDCFE>playerRigidbody</color>;</link>
+
+    <link="12">}</link>'
+  targets:
+  - targetId: 3
+    keyword: NewMonoBehavior
+    gayaPhrase: "\u30B9\u30AF\u30EA\u30D7\u30C8\u540D\u304C\u304A\u304B\u3057\u3044"
+  isSkippable: 1
+  charInterval: 0
+  postDisplayWait: 30
+  nextLineWait: 0.5
