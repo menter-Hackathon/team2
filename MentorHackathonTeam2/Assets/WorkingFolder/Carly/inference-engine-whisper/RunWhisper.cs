@@ -35,6 +35,10 @@ public class RunWhisper : MonoBehaviour
 
     public float latestVolume = 0f; // しゃべり終わったときの平均音量
 
+    [Header("マイクUI設定")]
+    public GameObject micOn; 
+    public GameObject micMute;
+
     [Header("マイク＆キーワード設定")]
     public float voiceThreshold = 0.04f;  // 話し始めとみなす音量
     public float minSpeechVolume = 0.008f; //音量のしきい値
@@ -54,8 +58,13 @@ public class RunWhisper : MonoBehaviour
     public ModelAsset audioEncoder;
     public ModelAsset logMelSpectro;
 
+    public event System.Action<string, float> OnSpeechRecognized;
+
     void Start()
     {
+        if (micOn != null) micOn.SetActive(false);
+        if (micMute != null) micMute.SetActive(false);
+
         SetupWhiteSpaceShifts();
         GetTokens();
 
@@ -76,6 +85,7 @@ public class RunWhisper : MonoBehaviour
         {
             micDevice = Microphone.devices[0];
             micClip = Microphone.Start(micDevice, true, 30, sampleRate);
+            SetMicUI(false);
             Debug.Log($"マイク待機中 ({micDevice})：話しかけてください");
         }
         else
@@ -93,6 +103,7 @@ public class RunWhisper : MonoBehaviour
             micDevice = Microphone.devices[0];
             micClip = Microphone.Start(micDevice, true, 30, sampleRate);
             isSpeaking = false;
+            SetMicUI(false);
             Debug.Log($"<color=yellow>マイクを切り替えました: {micDevice}</color>");
             return;
         }
@@ -109,6 +120,7 @@ public class RunWhisper : MonoBehaviour
             if (currentVolume > voiceThreshold)
             {
                 isSpeaking = true;
+                SetMicUI(true);
                 silenceTimer = 0f;
                 int preBuffer = (int)(sampleRate * 0.2f);
                 speechStartPos = (currentPos - preBuffer + micClip.samples) % micClip.samples;
@@ -123,6 +135,7 @@ public class RunWhisper : MonoBehaviour
                 if (silenceTimer >= silenceDuration) //話し終わりを判断
                 {
                     isSpeaking = false;
+                    SetMicUI(false);
                     float[] audioData = ExtractMicAudio(speechStartPos, currentPos); //音声データを切り出す
                     
                     // 平均音量の計算
@@ -160,6 +173,13 @@ public class RunWhisper : MonoBehaviour
                 silenceTimer = 0f;
             }
         }
+    }
+
+    //　UIの切り替え
+    void SetMicUI(bool isListening)
+    {
+        micOn.SetActive(isListening);
+        micMute.SetActive(!isListening);
     }
 
     float GetCurrentVolume(int currentPos)
@@ -279,6 +299,8 @@ public class RunWhisper : MonoBehaviour
 
             string outputString = Encoding.UTF8.GetString(outputBytes.ToArray());
             Debug.Log($"【最終結果】: 「{outputString}」 | 平均音量: {latestVolume:F3}");
+
+            OnSpeechRecognized?.Invoke(outputString, latestVolume);
 
             foreach (string keyword in targetKeywords)
             {
