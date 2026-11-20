@@ -1,7 +1,6 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using Photon.Pun;
 
 /// <summary>
 /// 入力デバイス（マウス／タップ／レティクル）の差異を吸収し、
@@ -53,7 +52,7 @@ public class GayaCursorRaycaster : MonoBehaviour
 
         if (isPressed && !string.IsNullOrEmpty(hoveredId))
         {
-            _gayaSystem.photonView.RPC("RequestClaimWord", RpcTarget.MasterClient, hoveredId, PhotonNetwork.LocalPlayer.ActorNumber.ToString());
+            _gayaSystem.TryClaimWord(hoveredId, LocalPlayerId);
         }
     }
 

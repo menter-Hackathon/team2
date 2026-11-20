@@ -5,12 +5,11 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using Photon.Pun;
 
 /// <summary>
 /// ガヤゲーム全体の進行（遊び方パネル → 本編 → リザルト）を管理するクラス。
 /// </summary>
-public class GayaGameFlowManager : MonoBehaviourPun
+public class GayaGameFlowManager : MonoBehaviour
 {
     /// <summary>ゲームの進行状態。</summary>
     public enum FlowState
@@ -65,11 +64,6 @@ public class GayaGameFlowManager : MonoBehaviourPun
 
     private FlowState _state = FlowState.HowToPlay;
 
-    private bool _isMyReady = false;
-    private bool _isOpponentReady = false;
-
-    private bool _isGameStarted = false;
-
     /// <summary>現在の進行状態。</summary>
     public FlowState State => _state;
 
@@ -112,58 +106,7 @@ public class GayaGameFlowManager : MonoBehaviourPun
         {
             return;
         }
-        
-        Debug.Log("自分がボタンを押しました");
-        _isMyReady = true;
-        CheckReady();
-
-        // 相手にもログを送る
-        photonView.RPC(nameof(OnOpponentButtonClicked), RpcTarget.Others);
-    }
-
-    [PunRPC]
-    private void OnOpponentButtonClicked()
-    {
-        Debug.Log("相手がボタンを押しました");
-        _isOpponentReady = true;
-        CheckReady();
-    }
-
-    private void CheckReady()
-    {
-        // ゲーム開始の決定はMasterClientだけが行う
-        if(!PhotonNetwork.IsMasterClient)
-        {
-            return;
-        }
-
-        if(_isMyReady && _isOpponentReady && !_isGameStarted)
-        {
-            _isGameStarted = true;
-
-            Debug.Log("2人とも準備完了！ゲーム開始！");
-            
-            // 1.5秒後をゲーム開始時刻にする
-            double startTime = PhotonNetwork.Time + 1.5;
-
-            // 2人いｎ同じ開始時刻を通知
-            photonView.RPC(nameof(StartGameAt), RpcTarget.All, startTime);
-        }
-        
-    }
-
-    [PunRPC]
-    private void StartGameAt(double startTime)
-    {
-        StartGameAtAsync(startTime, destroyCancellationToken).Forget();
-    }
-
-    private async UniTaskVoid StartGameAtAsync(double startTime, CancellationToken ct)
-    {
-        // Photonの共通時刻が開始時刻になるまで待つ
-        await UniTask.WaitUntil(() => PhotonNetwork.Time >= startTime, cancellationToken: ct);
-        
-        RunGameAsync(ct).Forget();
+        RunGameAsync(destroyCancellationToken).Forget();
     }
 
     /// <summary>

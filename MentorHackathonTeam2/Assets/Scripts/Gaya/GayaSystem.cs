@@ -7,14 +7,13 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using Photon.Pun;
 
 /// <summary>
 /// ガヤゲームのテキストシステム本体。
 /// TMP の文字送り、UniTask によるセリフ進行、回答済み単語の頂点カラー変更、
 /// および早押し排他判定（<see cref="TryClaimWord"/>）を担当する。
 /// </summary>
-public class GayaSystem : MonoBehaviourPun
+public class GayaSystem : MonoBehaviour
 {
     [Header("参照")]
     [Tooltip("セリフを表示する TextMeshProUGUI")]
@@ -61,10 +60,6 @@ public class GayaSystem : MonoBehaviourPun
     [Header("おてつき")]
     [Tooltip("非ガヤワードをクリックした際の吹き出しテキストのフォーマット（{0} にクリックした単語が入る）")]
     [SerializeField] private string _missBubbleFormat = "{0}！？";
-
-
-
-
 
     /// <summary>
     /// 回答済み単語1つ分の記録（回答したプレイヤーと、正解ガヤだったか）。
@@ -198,10 +193,6 @@ public class GayaSystem : MonoBehaviourPun
     /// <summary>設定に応じてセリフシーケンスを開始する。</summary>
     private void Start()
     {
-    
-        PhotonView pv = GetComponent<PhotonView>();
-
-        Debug.Log($"GayaSystem ViewID: {pv.ViewID}");
         if (_playOnStart)
         {
             PlaySequenceAsync(destroyCancellationToken).Forget();
@@ -276,8 +267,6 @@ public class GayaSystem : MonoBehaviourPun
             _claimedBy[targetId] = new ClaimRecord(playerId, isGayaWord);
         }
 
-
-
         RefreshMeshAndColors();
 
         if (isGayaWord)
@@ -292,31 +281,6 @@ public class GayaSystem : MonoBehaviourPun
         OnWordClaimed?.Invoke(targetId, playerId, phrase, isGayaWord);
         OnWordClaimedAt?.Invoke(targetId, playerId, phrase, isGayaWord, spawnPoint);
         return true;
-    }
-
-    [PunRPC]
-    private void RequestClaimWord(string targetId, string playerId)
-    {
-        // MasterClient以外は判定しない
-        if(!PhotonNetwork.IsMasterClient)
-        {
-            return;
-        }
-
-        // すでに誰かが獲得した的なら何もしない
-        if(!IsTargetInteractable(targetId))
-        {
-            return;
-        }
-
-        // 全員に獲得情報を送る
-        photonView.RPC(nameof(ApplyClaimWord), RpcTarget.All, targetId, playerId);
-    }
-
-    [PunRPC]
-    private void ApplyClaimWord(string targetId, string playerId)
-    {
-        TryClaimWord(targetId, playerId);
     }
 
     /// <summary>
