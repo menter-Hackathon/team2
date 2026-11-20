@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-/// <summary>Day1～Day4 の表示・遷移設定。プレイヤーの記録は DataManager が保持する。</summary>
+/// <summary>Day1～Day3 と Online の表示・遷移設定。</summary>
 [CreateAssetMenu(fileName = "StageCatalog", menuName = "Scene Select/Stage Catalog")]
 public sealed class StageCatalog : ScriptableObject
 {
@@ -12,13 +12,11 @@ public sealed class StageCatalog : ScriptableObject
         [SerializeField] private string _sceneName;
         [TextArea(3, 6)] [SerializeField] private string _description;
         [SerializeField] private Color _mainColor = Color.white;
-        [Range(0f, 100f)] [SerializeField] private float _requiredPreviousAccuracy = 90f;
 
         public string Name => _name;
         public string SceneName => _sceneName;
         public string Description => _description;
         public Color MainColor => _mainColor;
-        public float RequiredPreviousAccuracy => _requiredPreviousAccuracy;
 
     }
 
@@ -36,14 +34,15 @@ public sealed class StageCatalog : ScriptableObject
 
         if (_stages.Length != 4)
         {
-            Debug.LogWarning("[StageCatalog] Day1～Day4 の4件を順番に設定してください。", this);
+            Debug.LogWarning("[StageCatalog] Day1～Day3 と Online の4件を順番に設定してください。", this);
         }
 
         for (int i = 0; i < _stages.Length; i++)
         {
-            if (_stages[i] != null && _stages[i].Name != $"Day{i + 1}")
+            string expectedName = i == 3 ? "Online" : $"Day{i + 1}";
+            if (_stages[i] != null && _stages[i].Name != expectedName)
             {
-                Debug.LogWarning($"[StageCatalog] {i + 1}番目は Day{i + 1} にしてください。", this);
+                Debug.LogWarning($"[StageCatalog] {i + 1}番目は {expectedName} にしてください。", this);
             }
         }
     }

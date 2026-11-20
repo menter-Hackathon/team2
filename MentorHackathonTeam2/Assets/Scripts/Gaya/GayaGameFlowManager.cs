@@ -24,7 +24,7 @@ public class GayaGameFlowManager : MonoBehaviour
     [SerializeField] private GayaSystem _gayaSystem;
     [Tooltip("スコア管理（任意）")]
     [SerializeField] private GayaScoreManager _gayaScoreManager;
-    [Tooltip("記録する Day 名。空欄の場合は現在のシーン名を使用（Day1～Day4）")]
+    [Tooltip("記録する Day 名。空欄の場合は現在のシーン名を使用（Day1～Day3）")]
     [SerializeField] private string _dayName;
 
     [Header("遊び方")]

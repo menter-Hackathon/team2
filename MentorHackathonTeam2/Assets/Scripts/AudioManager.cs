@@ -41,6 +41,8 @@ public sealed class AudioManager : MonoBehaviour
         _bgmSource = EnsureSource(_bgmSource, "BGM");
         _seSource = EnsureSource(_seSource, "SE");
         _voiceSource = EnsureSource(_voiceSource, "Voice");
+        if (_voiceSource.outputAudioMixerGroup == null)
+            _voiceSource.outputAudioMixerGroup = _seSource.outputAudioMixerGroup;
         _bgmSource.loop = true;
         _bgmSource.playOnAwake = false;
         _seSource.playOnAwake = false;

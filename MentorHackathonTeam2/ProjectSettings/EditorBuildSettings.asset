@@ -6,6 +6,18 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/TitleSelect.unity
+    guid: 1638e8cbb5248704983070138f158466
+  - enabled: 1
+    path: Assets/Scenes/Day1.unity
+    guid: 53aefd6e6ade8714f9bca961408ac987
+  - enabled: 1
+    path: Assets/Scenes/Day2.unity
+    guid: b82b59c12d31f934793c059d29e8f591
+  - enabled: 1
+    path: Assets/Scenes/Day4.unity
+    guid: 50d6d200d022ef546be1ac7c19eeba7f
+  - enabled: 1
     path: Assets/WorkingFolder/Mumumu/Matching.unity
     guid: 86a99d059f9724243893814fb7ad9b76
   - enabled: 1

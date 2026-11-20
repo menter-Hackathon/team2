@@ -1,28 +1,33 @@
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.UI;
 
-/// <summary>音量とマウス感度を PlayerPrefs に保存する設定ポップアップ。</summary>
+/// <summary>音量と使用素材のクレジットを表示する設定ポップアップ。</summary>
 public sealed class SettingsPopUpWindow : PopUpWindow
 {
     private const string VolumeKey = "Settings.Volume";
-    private const string MouseSensitivityKey = "Settings.MouseSensitivity";
     private const float DefaultValue = 1f;
-    private const float MinMouseSensitivity = 0.1f;
-    private const float MaxMouseSensitivity = 2f;
+    private const string Credits = "会議室・教卓：CGTrader掲載素材\n"
+        + "木目02：建築パース.com\n"
+        + "Low Poly Office Props - LITE：RRFreelance\n"
+        + "めっちゃカメレオン アバター：BR's Shop\n"
+        + "けいふぉんと！：Do-Font / Apache License 2.0\n"
+        + "Dela Gothic One：The Dela Gothic Project Authors / OFL 1.1\n"
+        + "BGM「学び舎の風景」：稿屋 隆 / OpenTracks\n"
+        + "効果音・環境音：OtoLogic（CC BY 4.0）";
 
     private static float _volume = DefaultValue;
-    private static float _mouseSensitivity = DefaultValue;
 
     public static float Volume => _volume;
-    public static float MouseSensitivity => _mouseSensitivity;
 
-    [Header("スライダー")]
+    [Header("音量とクレジット")]
     [SerializeField] private Slider _volumeSlider;
-    [SerializeField] private Slider _mouseSensitivitySlider;
     [SerializeField] private TMP_Text _volumeValueText;
-    [SerializeField] private TMP_Text _mouseSensitivityValueText;
+    [SerializeField] private TMP_Text _creditsText;
+    [SerializeField] private AudioMixer _audioMixer;
+    [SerializeField] private string _masterVolumeParameter = "MasterVolume";
 
     [Header("開閉演出")]
     [SerializeField] private RectTransform _popupPanel;
@@ -56,33 +61,29 @@ public sealed class SettingsPopUpWindow : PopUpWindow
     protected override void Start()
     {
         _volume = Mathf.Clamp01(PlayerPrefs.GetFloat(VolumeKey, DefaultValue));
-        _mouseSensitivity = Mathf.Clamp(PlayerPrefs.GetFloat(MouseSensitivityKey, DefaultValue), MinMouseSensitivity, MaxMouseSensitivity);
-        AudioListener.volume = _volume;
 
         base.Start();
 
-        if (_volumeSlider == null || _mouseSensitivitySlider == null)
+        if (_volumeSlider == null)
         {
-            Debug.LogError("[SettingsPopUpWindow] 2本のスライダーを設定してください。", this);
+            Debug.LogError("[SettingsPopUpWindow] 音量スライダーを設定してください。", this);
             enabled = false;
             return;
         }
 
         _volumeSlider.minValue = 0f;
         _volumeSlider.maxValue = 1f;
-        _mouseSensitivitySlider.minValue = 0f;
-        _mouseSensitivitySlider.maxValue = 1f;
+        if (_creditsText != null) _creditsText.text = Credits;
+        ApplyVolume();
         UpdateSliderValues();
 
         _volumeSlider.onValueChanged.AddListener(OnVolumeChanged);
-        _mouseSensitivitySlider.onValueChanged.AddListener(OnMouseSensitivityChanged);
     }
 
     protected override void OnDestroy()
     {
         KillTweens();
         if (_volumeSlider != null) _volumeSlider.onValueChanged.RemoveListener(OnVolumeChanged);
-        if (_mouseSensitivitySlider != null) _mouseSensitivitySlider.onValueChanged.RemoveListener(OnMouseSensitivityChanged);
         base.OnDestroy();
     }
 
@@ -175,45 +176,30 @@ public sealed class SettingsPopUpWindow : PopUpWindow
     private void OnVolumeChanged(float sliderValue)
     {
         _volume = Mathf.Clamp01(sliderValue);
-        AudioListener.volume = _volume;
+        ApplyVolume();
         PlayerPrefs.SetFloat(VolumeKey, _volume);
         UpdateValueTexts();
     }
 
-    private void OnMouseSensitivityChanged(float sliderValue)
+    private void ApplyVolume()
     {
-        _mouseSensitivity = MouseValueFromSlider(sliderValue);
-        PlayerPrefs.SetFloat(MouseSensitivityKey, _mouseSensitivity);
-        UpdateValueTexts();
+        // Mixer が使える場合は Master のみを調節し、Listener との二重減衰を避ける。
+        float decibels = _volume <= 0.0001f ? -80f : Mathf.Log10(_volume) * 20f;
+        if (_audioMixer != null && !string.IsNullOrWhiteSpace(_masterVolumeParameter)
+            && _audioMixer.SetFloat(_masterVolumeParameter, decibels))
+            AudioListener.volume = 1f;
+        else
+            AudioListener.volume = _volume;
     }
 
     private void UpdateSliderValues()
     {
         if (_volumeSlider != null) _volumeSlider.SetValueWithoutNotify(_volume);
-        if (_mouseSensitivitySlider != null) _mouseSensitivitySlider.SetValueWithoutNotify(SliderFromMouseValue(_mouseSensitivity));
         UpdateValueTexts();
     }
 
     private void UpdateValueTexts()
     {
         if (_volumeValueText != null) _volumeValueText.text = $"{_volume * 100f:0}%";
-        if (_mouseSensitivityValueText != null) _mouseSensitivityValueText.text = $"{_mouseSensitivity:0.00}x";
-    }
-
-    // 0.1～1 と 1～2 をスライダーの左右半分に割り当て、初期値1を中央にする。
-    private static float MouseValueFromSlider(float sliderValue)
-    {
-        float value = Mathf.Clamp01(sliderValue);
-        return value <= 0.5f
-            ? Mathf.Lerp(MinMouseSensitivity, DefaultValue, value * 2f)
-            : Mathf.Lerp(DefaultValue, MaxMouseSensitivity, (value - 0.5f) * 2f);
-    }
-
-    private static float SliderFromMouseValue(float mouseValue)
-    {
-        float value = Mathf.Clamp(mouseValue, MinMouseSensitivity, MaxMouseSensitivity);
-        return value <= DefaultValue
-            ? Mathf.InverseLerp(MinMouseSensitivity, DefaultValue, value) * 0.5f
-            : 0.5f + Mathf.InverseLerp(DefaultValue, MaxMouseSensitivity, value) * 0.5f;
     }
 }

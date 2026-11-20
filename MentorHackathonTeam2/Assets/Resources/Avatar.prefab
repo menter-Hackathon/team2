@@ -352,3 +352,7 @@ MonoBehaviour:
   _initialScore: 0
   _gayaPoint: 100
   _missPenalty: 50
+  _correctVfx: {fileID: 8926484042661614526, guid: 36573e517b097a04dae550833553ae29, type: 3}
+  _missVfx: {fileID: 8926484042661614526, guid: 36573e517b097a04dae550833553ae29, type: 3}
+  _vfxDisplaySeconds: 2
+  _vfxSpawnPoint: {fileID: 0}
