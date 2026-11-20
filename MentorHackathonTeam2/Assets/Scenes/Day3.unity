@@ -8831,7 +8831,7 @@ MonoBehaviour:
   micOn: {fileID: 428193342}
   micMute: {fileID: 1197089305}
   voiceThreshold: 0.008
-  minSpeechDuration: 0.05
+  minSpeechDuration: 0.1
   silenceDuration: 0.7
   targetKeywords:
   - "\u304A\u306F\u3088\u3046"
