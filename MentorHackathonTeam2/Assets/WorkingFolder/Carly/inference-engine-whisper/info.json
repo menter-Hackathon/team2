@@ -1,0 +1,17 @@
+{
+    "code": [
+      "RunWhisper.cs"
+    ],
+    "models": [
+        "models/decoder_model.onnx",
+        "models/decoder_with_past_model.onnx",
+        "models/encoder_model.onnx",
+        "models/logmel_spectrogram.onnx"
+    ],
+    "data": [
+        "data/vocab.json"
+    ],
+    "version": [
+        "2.2.0"
+    ]
+}
