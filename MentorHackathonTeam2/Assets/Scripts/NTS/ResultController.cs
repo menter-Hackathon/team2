@@ -52,6 +52,8 @@ public sealed class ResultController : MonoBehaviour
     [Tooltip("評価コメント文字送り演出用のTweenインスタンス")]
     private Tween _feedbackTween;
 
+    [Header("BGM")] [SerializeField] private AudioClip bgm;
+
     /// <summary>初期化処理を行い、UIの参照検証とリザルト表示を開始する。</summary>
     private void Start()
     {
@@ -63,6 +65,7 @@ public sealed class ResultController : MonoBehaviour
         }
 
         _titleButton.onClick.AddListener(BackToTitle);
+        AudioManager.Instance.PlayBgm(bgm);
 
         float averageAccuracy = CalculateAverageAccuracy();
         PlayTextAnimations(averageAccuracy);

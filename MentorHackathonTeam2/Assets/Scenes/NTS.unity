@@ -589,6 +589,7 @@ MonoBehaviour:
   _feedbackText: {fileID: 1576750435}
   _titleButton: {fileID: 468068339}
   _charInterval: 0.1
+  bgm: {fileID: 8300000, guid: e092d61cffe54dc4fa04736022cc6c1b, type: 3}
 --- !u!4 &561537811
 Transform:
   m_ObjectHideFlags: 0
