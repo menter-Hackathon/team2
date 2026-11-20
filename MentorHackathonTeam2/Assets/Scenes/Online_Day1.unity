@@ -17098,7 +17098,7 @@ MonoBehaviour:
   _gayaScoreManager: {fileID: 995631199}
   _dayName: Day1
   _howToPlayPanel: {fileID: 57291378}
-  _startButton: {fileID: 0}
+  _startButton: {fileID: 1887028764}
   _gameplayUiElements:
   - {fileID: 1899159353}
   _resultPanel: {fileID: 369520819}
