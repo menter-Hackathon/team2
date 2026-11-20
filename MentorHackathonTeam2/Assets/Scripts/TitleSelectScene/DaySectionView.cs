@@ -18,20 +18,21 @@ public sealed class DaySectionView : MonoBehaviour
 
     public Button StartButton => _startButton;
 
-    public bool HasRequiredReferences(bool needsUnlockRequirement)
+    public bool HasRequiredReferences()
     {
         DayButtonStyle style = _startButton == null ? null : _startButton.GetComponent<DayButtonStyle>();
         return _descriptionText != null && _moodLabel != null && _moodIcon != null
             && _unlockStateText != null && _startButton != null && _startButtonText != null
-            && style != null && style.HasRequiredReferences
-            && (!needsUnlockRequirement || (_requiredMoodIcon != null && _unlockSuffixText != null));
+            && style != null && style.HasRequiredReferences;
     }
 
-    public void Render(StageCatalog.Stage stage, bool unlocked, Sprite moodIcon, bool hasResult,
-        Sprite requiredMoodIcon)
+    public void Render(StageCatalog.Stage stage, bool unlocked, Sprite moodIcon, bool hasResult)
     {
         _descriptionText.text = stage.Description;
-        _moodLabel.text = "今日の気分は？";
+        bool online = stage.Name == "Online";
+        _moodLabel.gameObject.SetActive(!online);
+        _moodIcon.gameObject.SetActive(!online);
+        if (!online) _moodLabel.text = "今日の気分は？";
         _moodIcon.sprite = moodIcon;
         _moodIcon.enabled = moodIcon != null;
         _moodIcon.color = hasResult ? Color.white : new Color(1f, 1f, 1f, 0.8f);
@@ -45,13 +46,9 @@ public sealed class DaySectionView : MonoBehaviour
         }
         else
         {
-            _unlockStateText.text = "前日の気分が";
-            _requiredMoodIcon.gameObject.SetActive(true);
-            _requiredMoodIcon.sprite = requiredMoodIcon;
-            _requiredMoodIcon.enabled = requiredMoodIcon != null;
-            _unlockSuffixText.gameObject.SetActive(true);
-            _unlockSuffixText.text = "以上で解放";
-            _unlockSuffixText.color = _unlockStateText.color;
+            _unlockStateText.text = online ? "Day3クリアで解放" : "前日のクリアで解放";
+            if (_requiredMoodIcon != null) _requiredMoodIcon.gameObject.SetActive(false);
+            if (_unlockSuffixText != null) _unlockSuffixText.gameObject.SetActive(false);
         }
 
         _startButton.interactable = unlocked;

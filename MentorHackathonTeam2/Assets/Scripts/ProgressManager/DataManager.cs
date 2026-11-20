@@ -69,7 +69,7 @@ public static class DataManager
 
         private static bool IsKnownDay(string dayName)
         {
-            return dayName == "Day1" || dayName == "Day2" || dayName == "Day3" || dayName == "Day4";
+            return dayName == "Day1" || dayName == "Day2" || dayName == "Day3" || dayName == "Online";
         }
 
         private static string BestAccuracyKey(string dayName) => KeyPrefix + dayName + ".BestAccuracy";

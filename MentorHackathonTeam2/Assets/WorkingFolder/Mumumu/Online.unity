@@ -14857,6 +14857,10 @@ MonoBehaviour:
   _initialScore: 0
   _gayaPoint: 100
   _missPenalty: 50
+  _correctVfx: {fileID: 8926484042661614526, guid: 36573e517b097a04dae550833553ae29, type: 3}
+  _missVfx: {fileID: 8926484042661614526, guid: 36573e517b097a04dae550833553ae29, type: 3}
+  _vfxDisplaySeconds: 2
+  _vfxSpawnPoint: {fileID: 2100500002}
 --- !u!1 &1005412558
 GameObject:
   m_ObjectHideFlags: 0
@@ -18394,7 +18398,8 @@ Transform:
   m_LocalPosition: {x: 12.270274, y: -1.3864497, z: 14.28629}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 2100500002}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 17.733, z: 0}
 --- !u!1001 &1285172518
@@ -31498,6 +31503,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2143477412}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &2100500001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2100500002}
+  m_Layer: 0
+  m_Name: Answer VFX Spawn Point
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2100500002
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2100500001}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1271952283}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
