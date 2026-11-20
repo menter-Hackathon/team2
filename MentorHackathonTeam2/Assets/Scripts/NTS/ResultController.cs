@@ -65,7 +65,10 @@ public sealed class ResultController : MonoBehaviour
         }
 
         _titleButton.onClick.AddListener(BackToTitle);
-        AudioManager.Instance.PlayBgm(bgm);
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayBgm(bgm);
+        }
 
         float averageAccuracy = CalculateAverageAccuracy();
         PlayTextAnimations(averageAccuracy);
