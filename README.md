@@ -12,9 +12,9 @@ Day1〜Day3 のステージを進めるほか、Photon を利用したオンラ�
 
 - **Unity / C#**：ゲーム本体の開発（Unity 6000.3.8f1）
 - **Meshy AI + Blender**：3Dモデルの作成・調整
-- **Gemini + Cloudflare**：LLMを利用した問題・セリフの生成
+- **Gemini + Cloudflare**：LLMを利用した問題の生成(Day1)
 - **Visual Effect Graph（VFX）**：演出用エフェクトの作成
-- **Unity Sentis（Inference Engine）**：音声認識と発話内容の判定
+- **Unity Sentis（Inference Engine）**：音声認識と発話内容の判定(Day3)
 - **TextMesh Pro のリッチテキスト**：`<link>` による対象語の識別と、`color`（文字色）による判定結果の表示
 - **Photon**：オンライン対戦の実装
 
