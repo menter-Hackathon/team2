@@ -23,6 +23,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Online_Day1.unity
     guid: a7bd141ad702a7140afa3789fc0d65ae
+  - enabled: 1
+    path: Assets/Scenes/NTS.unity
+    guid: bd192436119dcd64186d7989a837b5e0
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
   m_UseUCBPForAssetBundles: 0
