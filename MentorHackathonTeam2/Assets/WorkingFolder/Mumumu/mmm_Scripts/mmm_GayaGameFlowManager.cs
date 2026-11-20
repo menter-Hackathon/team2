@@ -43,6 +43,20 @@ public class mmm_GayaGameFlowManager : MonoBehaviourPun
     [Tooltip("リザルトパネルのルートオブジェクト")]
     [SerializeField] private GameObject _resultPanel;
 
+    [Header("オンラインリザルト表示")]
+    [SerializeField] private GameObject _multiResultRows;
+    [SerializeField] private Image _localRankImage;
+    [SerializeField] private Image _opponentRankImage;
+    [SerializeField] private TMP_Text _localNameText;
+    [SerializeField] private TMP_Text _opponentNameText;
+    [SerializeField] private TMP_Text _localScoreText;
+    [SerializeField] private TMP_Text _opponentScoreText;
+    [SerializeField] private GameObject _nextButtonObject;
+    [SerializeField] private Sprite _multiGreat;
+    [SerializeField] private Sprite _multiGood;
+    [SerializeField] private Sprite _multiMid;
+    [SerializeField] private Sprite _multiBad;
+
     [Header("評価画像")]
     [Tooltip("達成率が Great しきい値以上のときに表示するオブジェクト")]
     [SerializeField] private GameObject _greatResultObject;
@@ -72,6 +86,11 @@ public class mmm_GayaGameFlowManager : MonoBehaviourPun
     private bool _isGameStarted = false;
     private TMP_Text _startButtonLabel;
     private string _startButtonOriginalText;
+    private int _opponentFinalScore;
+    private int _opponentMaxScore;
+    private bool _hasOpponentScore;
+    private bool _resultRevealFinished;
+    private bool _opponentWasShown;
 
     /// <summary>現在の進行状態。</summary>
     public FlowState State => _state;
@@ -228,6 +247,8 @@ public class mmm_GayaGameFlowManager : MonoBehaviourPun
         SetGameplayUiActive(false);
         SetActiveSafe(_resultPanel, false);
         HideAllRankObjects();
+        SetActiveSafe(_multiResultRows, false);
+        SetActiveSafe(_nextButtonObject, false);
         if (_startButton != null)
         {
             _startButton.interactable = true;
@@ -249,6 +270,9 @@ public class mmm_GayaGameFlowManager : MonoBehaviourPun
         SetActiveSafe(_howToPlayPanel, false);
         SetActiveSafe(_resultPanel, false);
         HideAllRankObjects();
+        _hasOpponentScore = false;
+        _resultRevealFinished = false;
+        _opponentWasShown = false;
         SetGameplayUiActive(true);
 
         if (_gayaScoreManager != null)
@@ -278,9 +302,136 @@ public class mmm_GayaGameFlowManager : MonoBehaviourPun
             : _dayName;
         DataManager.Results.RecordResult(dayName, ratio * 100f);
         SetActiveSafe(_resultPanel, true);
-        ShowRankObject(Mathf.Clamp01(ratio), score);
+        HideAllRankObjects();
+        // このスクリプトを使う既存の mmm_Day1 シーンは従来の表示を続ける。
+        if (_multiResultRows == null)
+        {
+            ShowRankObject(Mathf.Clamp01(ratio), score);
+            ChangeState(FlowState.Result);
+            return;
+        }
+
+        SetActiveSafe(_multiResultRows, false);
+        SetActiveSafe(_nextButtonObject, false);
+        if (_localNameText != null)
+            _localNameText.text = GetPlayerName(PhotonNetwork.LocalPlayer, "あなた");
+        if (_opponentNameText != null)
+        {
+            var others = PhotonNetwork.PlayerListOthers;
+            _opponentNameText.text = others.Length > 0
+                ? GetPlayerName(others[0], "相手") : "相手";
+        }
+        if (_localScoreText != null) _localScoreText.text = "0";
+        if (_opponentScoreText != null) _opponentScoreText.text = "—";
+
+        // 先に終了した側の通知も受け取れるよう、受信状態は EnterPlaying で初期化する。
+        if (PhotonNetwork.InRoom && PhotonNetwork.PlayerListOthers.Length > 0)
+            photonView.RPC(nameof(ReceiveFinalScore), RpcTarget.Others, score, maxScore);
+
         ChangeState(FlowState.Result);
+        PlayMultiResultAsync(score, maxScore, destroyCancellationToken).Forget();
     }
+
+    [PunRPC]
+    private void ReceiveFinalScore(int score, int maxScore, PhotonMessageInfo info)
+    {
+        if (info.Sender == null || PhotonNetwork.LocalPlayer == null ||
+            info.Sender.ActorNumber == PhotonNetwork.LocalPlayer.ActorNumber)
+            return;
+
+        _opponentFinalScore = Mathf.Max(0, score);
+        _opponentMaxScore = Mathf.Max(0, maxScore);
+        _hasOpponentScore = true;
+
+        // 表示待ちの上限を超えてから届いた場合も、相手の行を更新する。
+        if (_state == FlowState.Result && _resultRevealFinished && !_opponentWasShown)
+            RevealLateOpponentAsync(destroyCancellationToken).Forget();
+    }
+
+    private async UniTaskVoid PlayMultiResultAsync(int localScore, int localMaxScore, CancellationToken ct)
+    {
+        try
+        {
+            // 背景を先に見せる時間を通信にも使う。
+            await UniTask.Delay(TimeSpan.FromSeconds(1.5f), cancellationToken: ct);
+            float timeoutAt = Time.realtimeSinceStartup + 8f;
+            while (!_hasOpponentScore && IsOpponentInRoom() && Time.realtimeSinceStartup < timeoutAt)
+                await UniTask.Yield(PlayerLoopTiming.Update, ct);
+
+            SetActiveSafe(_multiResultRows, true);
+            SetRankImage(_localRankImage, localScore, localMaxScore);
+            _opponentWasShown = _hasOpponentScore;
+            if (_opponentWasShown)
+                SetRankImage(_opponentRankImage, _opponentFinalScore, _opponentMaxScore);
+            else if (_opponentRankImage != null)
+                _opponentRankImage.enabled = false;
+
+            // 評価画像を見せてから数字を動かす、従来の間隔を維持する。
+            await UniTask.Delay(TimeSpan.FromSeconds(1.5f), cancellationToken: ct);
+            int opponentScore = _opponentWasShown ? _opponentFinalScore : 0;
+            await CountScoresAsync(localScore, opponentScore, _opponentWasShown, ct);
+
+            _resultRevealFinished = true;
+            if (_hasOpponentScore && !_opponentWasShown)
+                await RevealLateOpponentAsync(ct);
+
+            await UniTask.Delay(TimeSpan.FromSeconds(0.3f), cancellationToken: ct);
+            SetActiveSafe(_nextButtonObject, true);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+        }
+    }
+
+    private async UniTask RevealLateOpponentAsync(CancellationToken ct)
+    {
+        if (_opponentWasShown) return;
+        _opponentWasShown = true;
+        SetRankImage(_opponentRankImage, _opponentFinalScore, _opponentMaxScore);
+        try
+        {
+            await CountScoresAsync(0, _opponentFinalScore, true, ct, false);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+        }
+    }
+
+    private async UniTask CountScoresAsync(int localScore, int opponentScore,
+        bool showOpponent, CancellationToken ct, bool updateLocal = true)
+    {
+        float elapsed = 0f;
+        const float duration = 1f;
+        while (elapsed < duration)
+        {
+            ct.ThrowIfCancellationRequested();
+            float t = Mathf.Clamp01(elapsed / duration);
+            if (updateLocal && _localScoreText != null)
+                _localScoreText.text = Mathf.RoundToInt(localScore * t).ToString();
+            if (showOpponent && _opponentScoreText != null)
+                _opponentScoreText.text = Mathf.RoundToInt(opponentScore * t).ToString();
+            elapsed += Time.unscaledDeltaTime;
+            await UniTask.Yield(PlayerLoopTiming.Update, ct);
+        }
+        if (updateLocal && _localScoreText != null) _localScoreText.text = localScore.ToString();
+        if (showOpponent && _opponentScoreText != null) _opponentScoreText.text = opponentScore.ToString();
+    }
+
+    private void SetRankImage(Image image, int score, int maxScore)
+    {
+        if (image == null) return;
+        float ratio = maxScore > 0 ? (float)score / maxScore : 0f;
+        image.sprite = ratio >= _greatThreshold ? _multiGreat
+            : ratio >= _goodThreshold ? _multiGood
+            : ratio >= _midThreshold ? _multiMid : _multiBad;
+        image.enabled = image.sprite != null;
+    }
+
+    private static bool IsOpponentInRoom() => PhotonNetwork.InRoom &&
+        PhotonNetwork.CurrentRoom != null && PhotonNetwork.CurrentRoom.PlayerCount > 1;
+
+    private static string GetPlayerName(Photon.Realtime.Player player, string fallback) =>
+        player != null && !string.IsNullOrWhiteSpace(player.NickName) ? player.NickName : fallback;
 
     /// <summary>
     /// 達成率に応じた評価オブジェクトだけを表示し、結果演出を開始する。
