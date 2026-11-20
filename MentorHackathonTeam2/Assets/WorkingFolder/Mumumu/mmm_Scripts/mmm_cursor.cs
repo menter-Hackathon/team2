@@ -1,90 +1,110 @@
-using TMPro;
+using Photon.Pun;
 using UnityEngine;
 using UnityEngine.UI;
-using Photon.Pun;
 
-/// <summary>
-/// 入力デバイス（マウス／タップ／レティクル）の差異を吸収し、
-/// クリックされたガヤ候補を <see cref="GayaSystem"/> に通知する入力専用クラス。
-/// </summary>
+/// <summary>自分と相手のカーソル位置を同期して表示する。</summary>
 public class mmm_cursor : MonoBehaviourPun, IPunObservable
 {
-
-    // 相手から受信したレティクルの位置（画面内の割合）
-    private Vector2 _remotePointerPosition = new Vector2(0.5f, 0.5f); 
-    private bool _receivedPointer;
-
-    /// <summary>ポインター位置の取得方法。</summary>
-    public enum PointerMode
-    {
-        Mouse,
-        Touch,
-        ScreenCenterReticle,
-    }
-
-    private const string LocalPlayerId = "LocalPlayer";
-
-    [Header("参照")]
-    [Tooltip("クリック結果を通知する GayaSystem")]
-    [SerializeField] private GayaSystem _gayaSystem;
-    [Tooltip("リンク判定対象のセリフ TextMeshProUGUI（GayaSystem と同じもの）")]
-    [SerializeField] private TextMeshProUGUI _text;
-    [Tooltip("Canvas を描画するカメラ。Screen Space - Overlay の場合は空でOK")]
     [SerializeField] private Camera _uiCamera;
-
-    [Header("入力")]
-    [Tooltip("ポインター位置の取得方法（マウス／タップ／画面中央レティクル）")]
-    [SerializeField] private PointerMode _pointerMode = PointerMode.Mouse;
-    [Tooltip("マウス位置に追従させるレティクル画像（任意・Mouse モード時のみ表示）")]
     [SerializeField] private Image _reticleImage;
 
-    private void Update()
+    private Vector2 _remotePointerPosition;
+    private bool _receivedPointer;
+    private bool? _wasMine;
+    private Sprite _originalSprite;
+    private Sprite _graySprite;
+    private Texture2D _grayTexture;
+
+    private void Awake()
     {
-        if(photonView.IsMine)
+        if (_reticleImage != null)
         {
-            UpdateReticle(Input.mousePosition);
-
-            if (_gayaSystem == null || _text == null)
-            {
-                return;
-            }
-
-            bool hasPointer = TryGetPointer(out Vector3 pointerPosition, out bool isPressed);
-            string hoveredId = hasPointer ? FindLinkId(pointerPosition) : null;
-
-            if (isPressed && !string.IsNullOrEmpty(hoveredId))
-            {
-                _gayaSystem.photonView.RPC("RequestClaimWord", RpcTarget.MasterClient, PhotonNetwork.LocalPlayer.ActorNumber.ToString());
-            }
-        }
-        else
-        {
-            // 相手のレティクルは受信した位置に表示
-            Vector2 screenPosition = new Vector2(_remotePointerPosition.x * Screen.width, _remotePointerPosition.y * Screen.height);
-
-            UpdateReticle(screenPosition);
+            _originalSprite = _reticleImage.sprite;
         }
     }
 
-    /// <summary>レティクル画像をマウス位置へ移動させる（Mouse モード時のみ表示）。</summary>
-    private void UpdateReticle(Vector2 screenPosition)
+    private void Update()
     {
         if (_reticleImage == null)
         {
             return;
         }
 
-        bool showReticle = _pointerMode == PointerMode.Mouse;
-        _reticleImage.enabled = showReticle;
-        if (!showReticle)
+        bool isMine = photonView.IsMine;
+        if (_wasMine != isMine)
         {
+            SetAppearance(isMine);
+            _wasMine = isMine;
+        }
+
+        if (isMine)
+        {
+            UpdateReticle(Input.mousePosition);
+        }
+        else if (_receivedPointer)
+        {
+            UpdateReticle(new Vector2(
+                _remotePointerPosition.x * Screen.width,
+                _remotePointerPosition.y * Screen.height));
+        }
+        else
+        {
+            _reticleImage.enabled = false;
+        }
+    }
+
+    private void SetAppearance(bool isMine)
+    {
+        _reticleImage.color = Color.white;
+        if (isMine)
+        {
+            _reticleImage.sprite = _originalSprite;
             return;
         }
 
+        // 元画像自体が赤いので、Image.color の乗算だけでは灰色にならない。
+        if (_graySprite == null && _originalSprite != null)
+        {
+            Texture2D source = _originalSprite.texture;
+            RenderTexture buffer = RenderTexture.GetTemporary(source.width, source.height, 0);
+            RenderTexture previous = RenderTexture.active;
+            try
+            {
+                Graphics.Blit(source, buffer);
+                RenderTexture.active = buffer;
+                _grayTexture = new Texture2D(source.width, source.height, TextureFormat.RGBA32, false);
+                _grayTexture.ReadPixels(new Rect(0, 0, source.width, source.height), 0, 0);
+                Color32[] pixels = _grayTexture.GetPixels32();
+                for (int i = 0; i < pixels.Length; i++)
+                {
+                    pixels[i].r = 128;
+                    pixels[i].g = 128;
+                    pixels[i].b = 128;
+                }
+                _grayTexture.SetPixels32(pixels);
+                _grayTexture.Apply();
+                Vector2 pivot = new Vector2(
+                    _originalSprite.pivot.x / _originalSprite.rect.width,
+                    _originalSprite.pivot.y / _originalSprite.rect.height);
+                _graySprite = Sprite.Create(_grayTexture,
+                    new Rect(0, 0, source.width, source.height), pivot,
+                    _originalSprite.pixelsPerUnit);
+            }
+            finally
+            {
+                RenderTexture.active = previous;
+                RenderTexture.ReleaseTemporary(buffer);
+            }
+        }
+        _reticleImage.sprite = _graySprite;
+    }
+
+    private void UpdateReticle(Vector2 screenPosition)
+    {
+        _reticleImage.enabled = true;
         RectTransform parentRect = _reticleImage.rectTransform.parent as RectTransform;
         if (parentRect == null)
         {
-            Debug.LogError("Reticle Image must have a RectTransform parent.", _reticleImage);
             _reticleImage.enabled = false;
             return;
         }
@@ -93,12 +113,8 @@ public class mmm_cursor : MonoBehaviourPun, IPunObservable
         Camera eventCamera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay
             ? (_uiCamera != null ? _uiCamera : canvas.worldCamera)
             : null;
-
         if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                parentRect,
-                screenPosition,
-                eventCamera,
-                out Vector2 localPoint))
+                parentRect, screenPosition, eventCamera, out Vector2 localPoint))
         {
             _reticleImage.rectTransform.localPosition = localPoint;
         }
@@ -108,64 +124,20 @@ public class mmm_cursor : MonoBehaviourPun, IPunObservable
     {
         if (stream.IsWriting)
         {
-            // 自分のマウス位置を画面内の割合に変換
-            Vector2 normalizedPosition = new Vector2(Input.mousePosition.x / Screen.width, Input.mousePosition.y / Screen.height);
-
-            stream.SendNext(normalizedPosition);
+            stream.SendNext(new Vector2(
+                Input.mousePosition.x / Mathf.Max(1, Screen.width),
+                Input.mousePosition.y / Mathf.Max(1, Screen.height)));
         }
-
         else
         {
-            // 相手のマウス位置を受信
             _remotePointerPosition = (Vector2)stream.ReceiveNext();
             _receivedPointer = true;
         }
-
     }
 
-    /// <summary>
-    /// 現在のモードに応じてポインター座標と押下状態を取得する。
-    /// </summary>
-    /// <returns>有効なポインターが存在すれば true。</returns>
-    private bool TryGetPointer(out Vector3 position, out bool isPressed)
+    private void OnDestroy()
     {
-        switch (_pointerMode)
-        {
-            case PointerMode.Touch:
-                if (Input.touchCount > 0)
-                {
-                    Touch touch = Input.GetTouch(0);
-                    position = touch.position;
-                    isPressed = touch.phase == TouchPhase.Began;
-                    return true;
-                }
-                position = Vector3.zero;
-                isPressed = false;
-                return false;
-
-            case PointerMode.ScreenCenterReticle:
-                position = new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0f);
-                isPressed = Input.GetMouseButtonDown(0);
-                return true;
-
-            default:
-                position = Input.mousePosition;
-                isPressed = Input.GetMouseButtonDown(0);
-                return true;
-        }
-    }
-
-    /// <summary>
-    /// 指定スクリーン座標と交差するリンクの ID を取得する。
-    /// </summary>
-    /// <returns>リンク ID。交差しない場合は null。</returns>
-    private string FindLinkId(Vector3 screenPosition)
-    {
-        int linkIndex = TMP_TextUtilities.FindIntersectingLink(_text, screenPosition, _uiCamera);
-        if (linkIndex < 0 || linkIndex >= _text.textInfo.linkCount)
-        {
-            return null;
-        }
-        return _text.textInfo.linkInfo[linkIndex].GetLinkID();
+        if (_graySprite != null) Destroy(_graySprite);
+        if (_grayTexture != null) Destroy(_grayTexture);
     }
 }

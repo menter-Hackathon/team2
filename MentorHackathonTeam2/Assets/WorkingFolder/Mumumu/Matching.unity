@@ -147,9 +147,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 166437571}
   m_Enabled: 0
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 08a440a4037744650b4f04216b1a0ce2, type: 3}
+  m_Script: {fileID: 11500000, guid: 77e2f97707ef46b5bab061d4c6cddc13, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GayaScoreManager
+  m_EditorClassIdentifier: Assembly-CSharp::mmm_GayaScoreManager
   _gayaSystem: {fileID: 166437573}
   _gauge: {fileID: 0}
   _scorePopupPrefab: {fileID: -1394748788833886125, guid: 233ec4c51ff6a4126b7be3cd8ac0fca9, type: 3}
@@ -168,9 +168,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 166437571}
   m_Enabled: 0
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 764e68dca8872440c8e3b546cafd4759, type: 3}
+  m_Script: {fileID: 11500000, guid: 93c61f9fab5c4029aaed039cb283d36e, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GayaSystem
+  m_EditorClassIdentifier: Assembly-CSharp::mmm_GayaSystem
   _text: {fileID: 0}
   _lines:
   - {fileID: 11400000, guid: c018b7fc3456a427686672d2aa0722fb, type: 2}
@@ -185,7 +185,7 @@ MonoBehaviour:
   - {fileID: 0}
   _allowOverlapWhenFull: 0
   _claimedColor: {r: 1, g: 0.23137255, b: 0.1882353, a: 1}
-  _missColor: {r: 0, g: 0.47843137, b: 1, a: 1}
+  _opponentClaimColor: {r: 0.6, g: 0.6, b: 0.6, a: 1}
   _missBubbleFormat: "{0}\uFF01\uFF1F"
 --- !u!114 &166437574
 MonoBehaviour:
@@ -196,9 +196,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 166437571}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f6a6a092c8fb44e5a9e8f032ea4458ca, type: 3}
+  m_Script: {fileID: 11500000, guid: eadf9677dede4e71b113ca9270e06d3a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GayaCursorRaycaster
+  m_EditorClassIdentifier: Assembly-CSharp::mmm_GayaCursorRaycaster
   _gayaSystem: {fileID: 166437573}
   _text: {fileID: 0}
   _uiCamera: {fileID: 0}

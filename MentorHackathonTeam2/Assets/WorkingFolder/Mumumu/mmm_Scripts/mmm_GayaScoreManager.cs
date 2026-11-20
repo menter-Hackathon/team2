@@ -99,11 +99,13 @@ public class mmm_GayaScoreManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 単語確定時の処理。正解なら加点、おてつきなら減点し、ゲージとポップアップへ反映する。
+    /// 単語確定時の処理。正解は先着なら全点・後着なら半分、おてつきは常に設定値を減点する。
     /// </summary>
-    private void HandleWordClaimed(string targetId, string playerId, string phrase, bool isGayaWord, RectTransform spawnPoint)
+    private void HandleWordClaimed(string targetId, string playerId, string phrase,
+        bool isGayaWord, RectTransform spawnPoint, int claimOrder)
     {
         // 自分がとった的でなければスコアを変更しない
+        if (PhotonNetwork.LocalPlayer == null) return;
         string myPlayerId = PhotonNetwork.LocalPlayer.ActorNumber.ToString();
 
         if(playerId != myPlayerId)
@@ -111,7 +113,9 @@ public class mmm_GayaScoreManager : MonoBehaviour
             return;
         }
 
-        int requested = isGayaWord ? _gayaPoint : -Mathf.Abs(_missPenalty);
+        int requested = isGayaWord
+            ? (claimOrder == 1 ? _gayaPoint : _gayaPoint / 2)
+            : -Mathf.Abs(_missPenalty);
         int newScore = Mathf.Clamp(_score + requested, 0, _maxScore);
         int actualDelta = newScore - _score;
         _score = newScore;

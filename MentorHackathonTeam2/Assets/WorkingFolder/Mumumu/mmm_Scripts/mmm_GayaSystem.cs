@@ -12,7 +12,7 @@ using Photon.Pun;
 /// <summary>
 /// ガヤゲームのテキストシステム本体。
 /// TMP の文字送り、UniTask によるセリフ進行、回答済み単語の頂点カラー変更、
-/// および早押し排他判定（<see cref="TryClaimWord"/>）を担当する。
+/// および先着・後着のクリック判定を担当する。
 /// </summary>
 public class mmm_GayaSystem : MonoBehaviourPun
 {
@@ -56,7 +56,7 @@ public class mmm_GayaSystem : MonoBehaviourPun
     [Tooltip("回答済み（ガヤ成功）単語の表示色")]
     [SerializeField] private Color _claimedColor = new Color32(0xFF, 0x3B, 0x30, 0xFF);
     [Tooltip("おてつき（非ガヤワード）をクリックした単語の表示色")]
-    [SerializeField] private Color _missColor = new Color32(0x00, 0x7A, 0xFF, 0xFF);
+    [SerializeField] private Color _opponentClaimColor = Color.gray;
 
     [Header("おてつき")]
     [Tooltip("非ガヤワードをクリックした際の吹き出しテキストのフォーマット（{0} にクリックした単語が入る）")]
@@ -69,23 +69,21 @@ public class mmm_GayaSystem : MonoBehaviourPun
     /// <summary>
     /// 回答済み単語1つ分の記録（回答したプレイヤーと、正解ガヤだったか）。
     /// </summary>
-    private readonly struct ClaimRecord
+    private sealed class ClaimRecord
     {
-        public readonly string PlayerId;
-        public readonly bool IsGayaWord;
+        public readonly int FirstActorNumber;
+        public int SecondActorNumber;
 
-        /// <summary>
-        /// 回答記録を生成する。
-        /// </summary>
-        public ClaimRecord(string playerId, bool isGayaWord)
+        public ClaimRecord(int firstActorNumber)
         {
-            PlayerId = playerId;
-            IsGayaWord = isGayaWord;
+            FirstActorNumber = firstActorNumber;
         }
     }
 
-    private readonly object _claimLock = new object();
-    private readonly Dictionary<string, ClaimRecord> _claimedBy = new Dictionary<string, ClaimRecord>();
+    private readonly Dictionary<int, Dictionary<string, ClaimRecord>> _claimsByLine =
+        new Dictionary<int, Dictionary<string, ClaimRecord>>();
+    private Dictionary<string, ClaimRecord> _claimedBy = new Dictionary<string, ClaimRecord>();
+    private int _currentLineIndex = -1;
     private DialogueLineData _currentLine;
     private DialogueLineData _linePreparedBySlide;
     private CancellationTokenSource _skipLineCancellation;
@@ -103,10 +101,10 @@ public class mmm_GayaSystem : MonoBehaviourPun
 
     /// <summary>
     /// 単語の確定に成功した際に、吹き出しの出現地点付きで発火する
-    /// （targetId, playerId, 吹き出しテキスト, isGayaWord, 出現地点）。
+    /// （targetId, playerId, 吹き出しテキスト, isGayaWord, 出現地点, クリック順）。
     /// 吹き出しを生成できなかった場合、出現地点は null になる。
     /// </summary>
-    public event Action<string, string, string, bool, RectTransform> OnWordClaimedAt;
+    public event Action<string, string, string, bool, RectTransform, int> OnWordClaimedAt;
 
     /// <summary>Start 時に自動でシーケンスを開始するか（Start より前に設定すること）。</summary>
     public bool PlayOnStart
@@ -124,6 +122,8 @@ public class mmm_GayaSystem : MonoBehaviourPun
 
     /// <summary>現在のセリフ表示に使っている TextMeshProUGUI。</summary>
     public TextMeshProUGUI CurrentText => _text;
+
+    public int CurrentLineIndex => _currentLineIndex;
 
     /// <summary>セリフUIがスライド遷移中か。</summary>
     public bool IsTransitioning => _isTransitioning;
@@ -201,7 +201,10 @@ public class mmm_GayaSystem : MonoBehaviourPun
     
         PhotonView pv = GetComponent<PhotonView>();
 
-        Debug.Log($"mmm_GayaSystem ViewID: {pv.ViewID}");
+        if (pv != null)
+        {
+            Debug.Log($"mmm_GayaSystem ViewID: {pv.ViewID}");
+        }
         if (_playOnStart)
         {
             PlaySequenceAsync(destroyCancellationToken).Forget();
@@ -232,7 +235,7 @@ public class mmm_GayaSystem : MonoBehaviourPun
                     if (line != null)
                     {
                         DialogueLineData nextLine = FindNextLine(i + 1);
-                        await PlayLineAsync(line, nextLine, ct);
+                        await PlayLineAsync(line, nextLine, i, ct);
                     }
                 }
             }
@@ -245,88 +248,101 @@ public class mmm_GayaSystem : MonoBehaviourPun
     }
 
     /// <summary>
-    /// 単語の確定を試みる。最初に呼んだプレイヤーのみ成功する。
-    /// 現在のセリフの targets に登録された単語なら正解ガヤ（赤・gayaPhrase の吹き出し）、
-    /// 登録されていない単語なら非ガヤ（青・フォーマット適用済みの吹き出し）として扱う。
+    /// MasterClient が表示中の単語とクリック順を判定する。
     /// </summary>
-    /// <param name="targetId">対象のリンク ID。</param>
-    /// <param name="playerId">確定を試みるプレイヤー ID。</param>
-    /// <returns>確定に成功した場合 true。既に取得済み・未表示・存在しない場合は false。</returns>
-    public bool TryClaimWord(string targetId, string playerId)
+    [PunRPC]
+    private void RequestClaimWord(string targetId, int lineIndex, PhotonMessageInfo info)
     {
-        string phrase;
-        bool isGayaWord;
-        lock (_claimLock)
+        if (!PhotonNetwork.IsMasterClient || info.Sender == null ||
+            lineIndex != _currentLineIndex || !IsTargetInteractable(targetId))
         {
-            if (!IsTargetInteractable(targetId))
-            {
-                return false;
-            }
-
-            isGayaWord = TryFindGayaTarget(targetId, out GayaTargetData target);
-            if (isGayaWord)
-            {
-                phrase = target.gayaPhrase;
-            }
-            else
-            {
-                string linkText = TryGetLinkInfo(targetId, out TMP_LinkInfo link) ? link.GetLinkText() : string.Empty;
-                phrase = BuildMissPhrase(linkText);
-            }
-            _claimedBy[targetId] = new ClaimRecord(playerId, isGayaWord);
+            return;
         }
 
-
-
-        RefreshMeshAndColors();
-
-        if (isGayaWord)
+        int actorNumber = info.Sender.ActorNumber;
+        _claimedBy.TryGetValue(targetId, out ClaimRecord record);
+        if (record != null && (record.FirstActorNumber == actorNumber || record.SecondActorNumber != 0))
         {
-            Debug.Log($"[mmm_GayaSystem] {playerId} がガヤ！「{phrase}」 (target: {targetId})");
+            return;
+        }
+        bool isGayaWord = TryFindGayaTarget(targetId, out GayaTargetData target);
+        string phrase = isGayaWord
+            ? target.gayaPhrase
+            : BuildMissPhrase(TryGetLinkInfo(targetId, out TMP_LinkInfo link) ? link.GetLinkText() : string.Empty);
+        int claimOrder = record == null ? 1 : 2;
+        int firstActorNumber = record == null ? actorNumber : record.FirstActorNumber;
+
+        // Master へは先に適用し、連続するリクエストの順番を確定させる。
+        ApplyClaimWordCore(lineIndex, targetId, actorNumber, firstActorNumber, isGayaWord, phrase, claimOrder);
+        photonView.RPC(nameof(ApplyClaimWord), RpcTarget.Others,
+            lineIndex, targetId, actorNumber, firstActorNumber, isGayaWord, phrase, claimOrder);
+    }
+
+    [PunRPC]
+    private void ApplyClaimWord(int lineIndex, string targetId, int actorNumber,
+        int firstActorNumber, bool isGayaWord, string phrase, int claimOrder, PhotonMessageInfo info)
+    {
+        if (info.Sender == null || !info.Sender.IsMasterClient) return;
+        ApplyClaimWordCore(lineIndex, targetId, actorNumber, firstActorNumber,
+            isGayaWord, phrase, claimOrder);
+    }
+
+    private void ApplyClaimWordCore(int lineIndex, string targetId, int actorNumber,
+        int firstActorNumber, bool isGayaWord, string phrase, int claimOrder)
+    {
+        Dictionary<string, ClaimRecord> claims = GetLineClaims(lineIndex);
+        claims.TryGetValue(targetId, out ClaimRecord record);
+        if (claimOrder == 1)
+        {
+            if (record != null) return;
+            record = new ClaimRecord(firstActorNumber);
+            claims[targetId] = record;
+        }
+        else if (claimOrder == 2)
+        {
+            if (record == null)
+            {
+                record = new ClaimRecord(firstActorNumber);
+                claims[targetId] = record;
+            }
+            if (record.SecondActorNumber != 0) return;
+            record.SecondActorNumber = actorNumber;
         }
         else
         {
-            Debug.Log($"[mmm_GayaSystem] {playerId} がおてつき…「{phrase}」 (target: {targetId})");
+            return;
         }
-        RectTransform spawnPoint = SpawnGayaSpeechBubble(phrase);
+
+        string playerId = actorNumber.ToString();
+        RectTransform spawnPoint = null;
+        if (lineIndex == _currentLineIndex)
+        {
+            RefreshMeshAndColors();
+            spawnPoint = SpawnGayaSpeechBubble(phrase);
+        }
         OnWordClaimed?.Invoke(targetId, playerId, phrase, isGayaWord);
-        OnWordClaimedAt?.Invoke(targetId, playerId, phrase, isGayaWord, spawnPoint);
-        return true;
+        OnWordClaimedAt?.Invoke(targetId, playerId, phrase, isGayaWord, spawnPoint, claimOrder);
     }
 
-    [PunRPC]
-    private void RequestClaimWord(string targetId, string playerId)
+    private Dictionary<string, ClaimRecord> GetLineClaims(int lineIndex)
     {
-        // MasterClient以外は判定しない
-        if(!PhotonNetwork.IsMasterClient)
+        if (!_claimsByLine.TryGetValue(lineIndex, out Dictionary<string, ClaimRecord> claims))
         {
-            return;
+            claims = new Dictionary<string, ClaimRecord>();
+            _claimsByLine[lineIndex] = claims;
         }
-
-        // すでに誰かが獲得した的なら何もしない
-        if(!IsTargetInteractable(targetId))
-        {
-            return;
-        }
-
-        // 全員に獲得情報を送る
-        photonView.RPC(nameof(ApplyClaimWord), RpcTarget.All, targetId, playerId);
-    }
-
-    [PunRPC]
-    private void ApplyClaimWord(string targetId, string playerId)
-    {
-        TryClaimWord(targetId, playerId);
+        return claims;
     }
 
     /// <summary>
-    /// 指定 ID の単語が現在クリック可能か（表示済みかつ未回答か）を返す。
+    /// 指定 ID の単語が現在クリック可能か（表示済みかつ二人に未取得か）を返す。
     /// </summary>
     /// <param name="targetId">リンク ID。</param>
     /// <returns>操作可能なら true。</returns>
     public bool IsTargetInteractable(string targetId)
     {
-        if (_isTransitioning || string.IsNullOrEmpty(targetId) || _claimedBy.ContainsKey(targetId))
+        if (_isTransitioning || string.IsNullOrEmpty(targetId) ||
+            (_claimedBy.TryGetValue(targetId, out ClaimRecord record) && record.SecondActorNumber != 0))
         {
             return false;
         }
@@ -415,7 +431,7 @@ public class mmm_GayaSystem : MonoBehaviourPun
     /// <summary>
     /// セリフ1行分のライフサイクル（文字送り → 維持 → 消去 → 待機）を実行する。
     /// </summary>
-    private async UniTask PlayLineAsync(DialogueLineData line, DialogueLineData nextLine, CancellationToken ct)
+    private async UniTask PlayLineAsync(DialogueLineData line, DialogueLineData nextLine, int lineIndex, CancellationToken ct)
     {
         bool lineWasPreparedBySlide = _linePreparedBySlide == line;
         if (lineWasPreparedBySlide)
@@ -427,10 +443,8 @@ public class mmm_GayaSystem : MonoBehaviourPun
         {
             _skipLineCancellation = skipLineCancellation;
             _skipRequested = false;
-            lock (_claimLock)
-            {
-                _claimedBy.Clear();
-            }
+            _currentLineIndex = lineIndex;
+            _claimedBy = GetLineClaims(lineIndex);
             _currentLine = line;
 
             if (!lineWasPreparedBySlide)
@@ -598,10 +612,8 @@ public class mmm_GayaSystem : MonoBehaviourPun
 
             ct.ThrowIfCancellationRequested();
 
-            lock (_claimLock)
-            {
-                _claimedBy.Clear();
-            }
+            _currentLineIndex++;
+            _claimedBy = GetLineClaims(_currentLineIndex);
             _text = nextText;
             _gameplayUiRoot = nextRoot;
             _currentLine = nextLine;
@@ -743,8 +755,7 @@ public class mmm_GayaSystem : MonoBehaviourPun
     }
 
     /// <summary>
-    /// 回答済み（<c>_claimedBy</c> に含まれる）全リンク範囲の頂点カラーを、
-    /// 正解ガヤなら <c>_claimedColor</c>、非ガヤなら <c>_missColor</c> に書き換え、メッシュへ反映する。
+    /// 自分が取得済みなら赤、相手だけが取得済みなら灰色でリンクを描画する。
     /// </summary>
     private void ApplyClaimedColors()
     {
@@ -759,8 +770,10 @@ public class mmm_GayaSystem : MonoBehaviourPun
             return;
         }
 
-        Color32 gayaColor = _claimedColor;
-        Color32 missColor = _missColor;
+        int localActorNumber = PhotonNetwork.LocalPlayer != null
+            ? PhotonNetwork.LocalPlayer.ActorNumber : 0;
+        Color32 localColor = _claimedColor;
+        Color32 opponentColor = _opponentClaimColor;
         bool isModified = false;
 
         for (int i = 0; i < textInfo.linkCount; i++)
@@ -770,7 +783,9 @@ public class mmm_GayaSystem : MonoBehaviourPun
             {
                 continue;
             }
-            Color32 color = record.IsGayaWord ? gayaColor : missColor;
+            Color32 color = record.FirstActorNumber == localActorNumber ||
+                            record.SecondActorNumber == localActorNumber
+                ? localColor : opponentColor;
 
             int start = link.linkTextfirstCharacterIndex;
             int end = Mathf.Min(start + link.linkTextLength, textInfo.characterCount);

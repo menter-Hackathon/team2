@@ -112,6 +112,14 @@ public class mmm_GayaGameFlowManager : MonoBehaviourPun
         {
             return;
         }
+        if (TryGetComponent(out mmm_CloudflareGeminiClient generator) && !generator.IsContentReady)
+        {
+            return;
+        }
+        if (_isMyReady)
+        {
+            return;
+        }
         
         Debug.Log("自分がボタンを押しました");
         _isMyReady = true;

@@ -17,8 +17,6 @@ public class mmm_GayaCursorRaycaster : MonoBehaviour
         ScreenCenterReticle,
     }
 
-    private const string LocalPlayerId = "LocalPlayer";
-
     [Header("参照")]
     [Tooltip("クリック結果を通知する mmm_GayaSystem")]
     [SerializeField] private mmm_GayaSystem _gayaSystem;
@@ -51,9 +49,11 @@ public class mmm_GayaCursorRaycaster : MonoBehaviour
         bool hasPointer = TryGetPointer(out Vector3 pointerPosition, out bool isPressed);
         string hoveredId = hasPointer ? FindLinkId(pointerPosition) : null;
 
-        if (isPressed && !string.IsNullOrEmpty(hoveredId))
+        if (isPressed && !string.IsNullOrEmpty(hoveredId) &&
+            PhotonNetwork.InRoom && _gayaSystem.photonView != null)
         {
-            _gayaSystem.photonView.RPC("RequestClaimWord", RpcTarget.MasterClient, hoveredId, PhotonNetwork.LocalPlayer.ActorNumber.ToString());
+            _gayaSystem.photonView.RPC("RequestClaimWord", RpcTarget.MasterClient,
+                hoveredId, _gayaSystem.CurrentLineIndex);
         }
     }
 
