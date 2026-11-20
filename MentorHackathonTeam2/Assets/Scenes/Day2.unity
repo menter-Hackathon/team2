@@ -14828,7 +14828,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e19d95d182c14e00a6def4a13b6a29c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ButtonSoundPlayer
-  _clickSe: {fileID: 0}
+  _clickSe: {fileID: 8300000, guid: e8585f3e308604e5297baa2a6d195f67, type: 3}
   _volumeScale: 1
 --- !u!1 &846988148
 GameObject:
@@ -16801,7 +16801,7 @@ MonoBehaviour:
   _howToPlayBgm: {fileID: 0}
   _gameplayBgm: {fileID: 8300000, guid: ebd56168ecc4347ada377aebe7cdc9a5, type: 3}
   _resultPanel: {fileID: 369520819}
-  _resultBgm: {fileID: 0}
+  _resultBgm: {fileID: 8300000, guid: 567a1820a4a754b249546e78773c7e28, type: 3}
   _greatResultObject: {fileID: 734792336}
   _goodResultObject: {fileID: 253182186}
   _midResultObject: {fileID: 1466404320}
@@ -19835,7 +19835,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e19d95d182c14e00a6def4a13b6a29c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ButtonSoundPlayer
-  _clickSe: {fileID: 0}
+  _clickSe: {fileID: 8300000, guid: e8585f3e308604e5297baa2a6d195f67, type: 3}
   _volumeScale: 1
 --- !u!1 &1178313700
 GameObject:

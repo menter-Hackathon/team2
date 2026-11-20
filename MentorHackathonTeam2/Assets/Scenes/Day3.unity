@@ -398,6 +398,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 205a4f5e01f06754dab2ff00c0ad1068, type: 3}
   m_PrefabInstance: {fileID: 32141669}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &34534786
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 34534787}
+  m_Layer: 0
+  m_Name: Bad VFX Spawn Point
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &34534787
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 34534786}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.0000014023825, y: 0.9999884, z: -0.0048093777, w: 0.000297185}
+  m_LocalPosition: {x: 12.272663, y: 0.57498324, z: 10.267239}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &40429739
 GameObject:
   m_ObjectHideFlags: 0
@@ -7845,8 +7876,8 @@ MonoBehaviour:
   _correctVfx: {fileID: 8926484042661614526, guid: 70cb353fe470a1c429dc92f271fe4ea2, type: 3}
   _missVfx: {fileID: 8926484042661614526, guid: 36573e517b097a04dae550833553ae29, type: 3}
   _vfxDisplaySeconds: 2
-  _correctVfxSpawnPoint: {fileID: 0}
-  _missVfxSpawnPoint: {fileID: 0}
+  _correctVfxSpawnPoint: {fileID: 1785768281}
+  _missVfxSpawnPoint: {fileID: 34534787}
 --- !u!114 &411156191
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7918,7 +7949,7 @@ MonoBehaviour:
   _gayaScoreManager: {fileID: 411156190}
   _dayName: Day3
   _howToPlayPanel: {fileID: 1394597912}
-  _startButton: {fileID: 0}
+  _startButton: {fileID: 2115493627}
   _gameplayUiElements:
   - {fileID: 16716403}
   - {fileID: 504612233}
@@ -30204,6 +30235,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4225381643663648, guid: 112cc81e36e745449bf229e4dbb3e073, type: 3}
   m_PrefabInstance: {fileID: 1776505124}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1785768280
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1785768281}
+  m_Layer: 0
+  m_Name: Good VFX Spawn Point
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1785768281
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1785768280}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.0000014023825, y: 0.9999884, z: -0.0048093777, w: 0.000297185}
+  m_LocalPosition: {x: 12.2726345, y: -4.4247856, z: 10.315332}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1796985814
 GameObject:
   m_ObjectHideFlags: 0
@@ -38829,3 +38891,5 @@ SceneRoots:
   - {fileID: 503499131}
   - {fileID: 386983354}
   - {fileID: 1002100115}
+  - {fileID: 34534787}
+  - {fileID: 1785768281}
