@@ -18608,7 +18608,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CloudflareGeminiClient
   lineTarget: {fileID: 995631196}
-  startButton: {fileID: 0}
+  startButton: {fileID: 690683974}
   scoreManager: {fileID: 995631199}
   proxyUrl: https://gaya-gen.hsmtyuusei.workers.dev/
 --- !u!1 &1005412558
