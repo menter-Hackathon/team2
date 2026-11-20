@@ -16756,12 +16756,13 @@ MonoBehaviour:
   _initialScore: 0
   _gayaPoint: 100
   _missPenalty: 50
-  _correctSe: {fileID: 0}
+  _correctSe: {fileID: 8300000, guid: 123ea78fccadd4bbeb9a61d849f4ecaf, type: 3}
   _missSe: {fileID: 8300000, guid: e53b0bde3f27e4d5ba679a6bfe4aa69c, type: 3}
   _correctVfx: {fileID: 8926484042661614526, guid: 36573e517b097a04dae550833553ae29, type: 3}
   _missVfx: {fileID: 8926484042661614526, guid: 36573e517b097a04dae550833553ae29, type: 3}
   _vfxDisplaySeconds: 2
-  _vfxSpawnPoint: {fileID: 2100500002}
+  _correctVfxSpawnPoint: {fileID: 2100500002}
+  _missVfxSpawnPoint: {fileID: 2100500004}
 --- !u!114 &995631200
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -20801,6 +20802,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2100500002}
+  - {fileID: 2100500004}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 17.733, z: 0}
 --- !u!1001 &1285172518
@@ -35016,7 +35018,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2100500002}
   m_Layer: 0
-  m_Name: Answer VFX Spawn Point
+  m_Name: Good VFX Spawn Point
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -35029,6 +35031,37 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2100500001}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1271952283}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2100500003
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2100500004}
+  m_Layer: 0
+  m_Name: Bad VFX Spawn Point
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2100500004
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2100500003}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 5}
