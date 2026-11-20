@@ -31,6 +31,12 @@ public class GayaScoreManager : MonoBehaviour
     [Tooltip("非ガヤ（おてつき）時の減点（正の値で指定）")]
     [SerializeField] private int _missPenalty = 50;
 
+    [Header("効果音")]
+    [Tooltip("正解ガヤ時の効果音（任意）")]
+    [SerializeField] private AudioClip _correctSe;
+    [Tooltip("おてつき時の効果音（任意）")]
+    [SerializeField] private AudioClip _missSe;
+
     private int _score;
 
     /// <summary>現在のスコア。</summary>
@@ -102,6 +108,8 @@ public class GayaScoreManager : MonoBehaviour
     /// </summary>
     private void HandleWordClaimed(string targetId, string playerId, string phrase, bool isGayaWord, RectTransform spawnPoint)
     {
+        AudioManager.Instance?.PlaySe(isGayaWord ? _correctSe : _missSe, 1f, 0.05f);
+
         int requested = isGayaWord ? _gayaPoint : -Mathf.Abs(_missPenalty);
         int newScore = Mathf.Clamp(_score + requested, 0, _maxScore);
         int actualDelta = newScore - _score;

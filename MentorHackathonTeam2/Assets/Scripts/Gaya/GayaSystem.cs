@@ -402,6 +402,8 @@ public class GayaSystem : MonoBehaviour
                 _text.text = line.markedUpText;
                 _text.ForceMeshUpdate();
                 _text.maxVisibleCharacters = line.charInterval <= 0f ? _text.textInfo.characterCount : 0;
+                AudioManager.Instance?.StopVoice();
+                AudioManager.Instance?.PlayVoice(line.voiceClip);
             }
             SetSkipButtonVisible(line.isSkippable);
 
@@ -426,6 +428,7 @@ public class GayaSystem : MonoBehaviour
                 {
                     _text.maxVisibleCharacters = 0;
                     _text.text = string.Empty;
+                    AudioManager.Instance?.StopVoice();
                     _currentLine = null;
                     await UniTask.Delay(TimeSpan.FromSeconds(line.nextLineWait), cancellationToken: skipLineCancellation.Token);
                 }
@@ -445,6 +448,7 @@ public class GayaSystem : MonoBehaviour
                 {
                     _text.maxVisibleCharacters = 0;
                     _text.text = string.Empty;
+                    AudioManager.Instance?.StopVoice();
                 }
                 if (!transitionedToNextLine)
                 {
@@ -529,6 +533,8 @@ public class GayaSystem : MonoBehaviour
         nextText.ForceMeshUpdate();
         nextText.maxVisibleCharacters = nextText.textInfo.characterCount;
 
+        AudioManager.Instance?.StopVoice();
+        AudioManager.Instance?.PlayVoice(nextLine.voiceClip);
         _isTransitioning = true;
         SetSkipButtonVisible(false);
         if (nextSkipButton != null)
