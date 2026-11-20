@@ -1,6 +1,6 @@
 # ガヤきゃん
 
-![ガヤきゃんのタイトルロゴ](Assets/WorkingFolder/Syokora/Design/Title.png)
+![ガヤきゃんのタイトルロゴ](mentorHackathonTeam2/Assets/WorkingFolder/Syokora/Design/Title.png)
 
 ## 作品概要
 
